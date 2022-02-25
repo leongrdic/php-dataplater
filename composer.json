@@ -1,0 +1,16 @@
+{
+  "name": "leongrdic/dataplater",
+  "type": "library",
+  "license": "MIT",
+  "homepage": "https://github.com/leongrdic/php-dataplater",
+  "require": {
+    "php": ">=8.0",
+    "ext-dom": "*",
+    "ext-libxml": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Le\\Dataplater\\": "src/"
+    }
+  }
+}
