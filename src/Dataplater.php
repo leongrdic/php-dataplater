@@ -30,23 +30,19 @@ class Dataplater
         $this->defineBuiltInFunctions();
     }
 
-    public function var(string $name, $value): static {
-        $this->vars[$name] = $value;
-        return $this;
-    }
-
-    public function varAssoc(array $vars): static {
-        $this->vars = array_merge_recursive($this->vars, $vars);
-        return $this;
-    }
-
     /**
      * @throws ParseException
      * @throws EvaluationException
      * @return string rendered HTML as a string
      */
-    public function render(): string
+    public function render(?array $vars = null): string
     {
+        if(is_array($vars)){
+            $instance = clone $this;
+            $instance->vars = array_merge($instance->vars, $vars);
+            return $instance->render();
+        }
+
         $this->execute();
 
         $html = $this->doc->saveHTML();
@@ -70,8 +66,10 @@ class Dataplater
         $this->vars['compare']['exact'] =         fn($a, $b) => $a === $b;
         $this->vars['compare']['notExact'] =      fn($a, $b) => $a !== $b;
 
-        $this->vars['count'] = fn($a) => count($a);
+        $this->vars['array']['count'] =     fn($a) => count($a);
+        $this->vars['array']['reverse'] =   fn($a) => array_reverse($a);
 
+        $this->vars['text']['length'] =     fn($a) => strlen($a);
         $this->vars['text']['concat'] =     fn(...$a) => implode('', $a);
         $this->vars['text']['implode'] =    fn($a, $b) => implode($a, $b);
         $this->vars['text']['explode'] =    fn($a, $b, $c = PHP_INT_MAX) => explode($a, $b, $c);
