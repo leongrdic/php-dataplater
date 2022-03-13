@@ -15,16 +15,25 @@ class Dataplater
      * @throws Exception
      */
     public function __construct(
-        string $filename,
+        ?string $filename = null,
+        ?string $template = null,
         public array $vars = []
     )
     {
-        if(!file_exists($filename)) throw new Exception('template file not found');
-        $html = file_get_contents($filename);
+        if($filename === null && $template === null)
+            throw new Exception('must provide either the filename or the template string param');
+
+        if($filename !== null && $template !== null)
+            throw new Exception('you can either pass the filename or template string params, not both');
+
+        if($filename !== null) {
+            if (!file_exists($filename)) throw new Exception('template file not found');
+            $template = file_get_contents($filename);
+        }
 
         libxml_use_internal_errors(true);
         $this->doc = new DOMDocument();
-        $this->doc->loadHTML($html);
+        $this->doc->loadHTML($template);
         $this->xpath = new DOMXpath($this->doc);
 
         $this->defineBuiltInFunctions();

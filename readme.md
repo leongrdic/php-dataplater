@@ -175,10 +175,10 @@ params can be encapsulated into `|` characters if your expression contains `,`
 ## Class
 
 ```php
-new Le\Dataplater\Dataplater(string $template, array $vars)
+new Le\Dataplater\Dataplater(?string $filename, ?string $template, array $vars)
 ```
 
-when creating an object, pass your template filename as the first constructor parameter. the second parameter is optional and can hold global variables that will be made available to each render of the template.
+when creating an object, pass your template filename as the first constructor parameter. if you instead want to load template HTML from a string, skip the first argument by using named arguments (e.g. `template: $htmlString`). when you want to define global vars, pass them to the argument vars (e.g. `vars: $globalVariables`).
 
 ```php
 $dataplater->render(array $vars);
