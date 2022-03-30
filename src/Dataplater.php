@@ -213,9 +213,8 @@ class Dataplater
                 continue;
             }
 
-            $fragment = $this->doc->createDocumentFragment()->appendXML(
-                $this->eval($value, $elem)
-            );
+            $fragment = $this->doc->createDocumentFragment();
+            $fragment->appendXML( $this->eval($value, $elem) );
             $elem->nodeValue = '';
             $elem->appendChild($fragment);
 
@@ -274,9 +273,8 @@ class Dataplater
 
         $selector = "data-var-html";
         foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem) {
-            $fragment = $this->doc->createDocumentFragment()->appendXML(
-                $this->eval($elem->getAttribute($selector), $elem)
-            );
+            $fragment = $this->doc->createDocumentFragment();
+            $fragment->appendXML( $this->eval($elem->getAttribute($selector), $elem) );
             $elem->nodeValue = '';
             $elem->appendChild($fragment);
 
