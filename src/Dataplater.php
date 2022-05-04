@@ -2,14 +2,14 @@
 
 namespace Le\Dataplater;
 
-use DOMDocument, DOMElement, DOMXPath;
 use InvalidArgumentException, ArgumentCountError, Exception;
+use DOMDocument, DOMElement, DOMXPath;
 
 class Dataplater
 {
 
-    private DOMDocument $doc;
-    private DOMXPath $xpath;
+    protected DOMDocument $doc;
+    protected DOMXPath $xpath;
 
     /**
      * @throws Exception
@@ -62,6 +62,9 @@ class Dataplater
 
     private function defineBuiltInFunctions(): void
     {
+        $this->vars['logic']['ternary'] =       fn($a, $b, $c) => $a ? $b : $c;
+        $this->vars['logic']['shortTernary'] =  fn($a, $b) => $a ?: $b;
+
         $this->vars['logic']['and'] =           fn($a, $b) => $a && $b;
         $this->vars['logic']['or'] =            fn($a, $b) => $a || $b;
         $this->vars['logic']['not'] =           fn($a) => !$a;
@@ -189,7 +192,7 @@ class Dataplater
 
         $selector = "data-var-if";
         foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem) {
-            if ($this->eval($elem->getAttribute($selector), $elem) != true)
+            if (!$this->eval($elem->getAttribute($selector), $elem))
                 $elem->parentNode->removeChild($elem);
             else
                 $elem->removeAttribute($selector);
@@ -203,7 +206,7 @@ class Dataplater
             if(empty($params[1])) throw new ParseException('missing value expression if true', $elem);
 
             unset($value);
-            if ($this->eval($params[0], $elem) == true)
+            if ($this->eval($params[0], $elem))
                 $value = $params[1];
             else if (isset($params[2]))
                 $value = $params[2];
@@ -228,7 +231,7 @@ class Dataplater
             if(empty($params[0])) throw new ParseException('missing condition expression', $elem);
             if(empty($params[1])) throw new ParseException('missing value expression if true', $elem);
 
-            if ($this->eval($params[0], $elem) == true)
+            if ($this->eval($params[0], $elem))
                 $elem->nodeValue = $this->eval($params[1], $elem);
             else if (isset($params[2]))
                 $elem->nodeValue = $this->eval($params[2], $elem);
@@ -244,7 +247,7 @@ class Dataplater
                 if(empty($params[0])) throw new ParseException('missing condition expression', $elem);
                 if(empty($params[1])) throw new ParseException('missing value expression if true', $elem);
 
-                if ($this->eval($params[0], $elem) == true)
+                if ($this->eval($params[0], $elem))
                     $elem->setAttribute($attribute, $this->eval($params[1], $elem));
                 else if (isset($params[2]))
                     $elem->setAttribute($attribute, $this->eval($params[2], $elem));
@@ -261,7 +264,7 @@ class Dataplater
             if(empty($params[1])) throw new ParseException('missing condition expression', $elem);
             if(empty($params[2])) throw new ParseException('missing value expression if true', $elem);
 
-            if($this->eval($params[1], $elem) == true)
+            if($this->eval($params[1], $elem))
                 $elem->setAttribute($params[0], $this->eval($params[3], $elem));
             else if (isset($params[3]))
                 $elem->setAttribute($params[0], $this->eval($params[3], $elem));
