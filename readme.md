@@ -149,27 +149,29 @@ params can be encapsulated into `|` characters if your expression contains `,`
 
 ## Built-in functions
 
-| **function**                             | **php equivalent**                | **notes**                             |
-|------------------------------------------|-----------------------------------|---------------------------------------|
-| `logic.and, a, b`                        | `$a && $b`                        |                                       |
-| `logic.or, a, b`                         | `$a \|\| $b`                      |                                       |
-| `logic.not, a`                           | `!$a`                             |                                       |
-| `compare.equal, a, b`                    | `$a == $b`                        |                                       |
-| `compare.different, a, b`                | `$a != $b`                        |                                       |
-| `compare.exact, a, b`                    | `$a === $b`                       |                                       |
-| `compare.notExact, a, b`                 | `$a !== $b`                       |                                       |
-| `compare.larger, a, b`                   | `$a > $b`                         |                                       |
-| `compare.largerEqual, a, b`              | `$a >= $b`                        |                                       |
-| `compare.smaller, a, b`                  | `$a < $b`                         |                                       |
-| `compare.smallerEqual, a, b`             | `$a <= $b`                        |                                       |
-| `array.count, var`                       | `count($var)`                     | var can be a countable array or object|
-| `array.reverse, var`                     | `array_reverse($var)`             |                                       |
-| `text.length, string`                    | `strlen($string)`                 |                                       |
-| `text.concat, string1, string2, ...`     | `implode('', $strings)`           |                                       |
-| `text.implode, separator, array`         | `implode($separator, $array)`     |                                       |
-| `text.explode, separator, string, limit` | `explode($separator, $string, $limit)` | limit is optional                |
-| `json.decode, string`                    | `json_decode($string, true)`      |                                       |
-| `json.encode, var`                       | `json_encode($var)`               |                                       |
+| **function**                             | **php equivalent**                     | **notes**                              |
+|------------------------------------------|----------------------------------------|----------------------------------------|
+| `logic.ternary, a, b, c`                 | `$a ? $b : $c`                         |                                        |
+| `logic.shortTernary, a, b`               | `$a ?: $b`                             |                                        |
+| `logic.and, a, b`                        | `$a && $b`                             |                                        |
+| `logic.or, a, b`                         | `$a \|\| $b`                           |                                        |
+| `logic.not, a`                           | `!$a`                                  |                                        |
+| `compare.equal, a, b`                    | `$a == $b`                             |                                        |
+| `compare.different, a, b`                | `$a != $b`                             |                                        |
+| `compare.exact, a, b`                    | `$a === $b`                            |                                        |
+| `compare.notExact, a, b`                 | `$a !== $b`                            |                                        |
+| `compare.larger, a, b`                   | `$a > $b`                              |                                        |
+| `compare.largerEqual, a, b`              | `$a >= $b`                             |                                        |
+| `compare.smaller, a, b`                  | `$a < $b`                              |                                        |
+| `compare.smallerEqual, a, b`             | `$a <= $b`                             |                                        |
+| `array.count, var`                       | `count($var)`                          | var can be a countable array or object |
+| `array.reverse, var`                     | `array_reverse($var)`                  |                                        |
+| `text.length, string`                    | `strlen($string)`                      |                                        |
+| `text.concat, string1, string2, ...`     | `implode('', $strings)`                |                                        |
+| `text.implode, separator, array`         | `implode($separator, $array)`          |                                        |
+| `text.explode, separator, string, limit` | `explode($separator, $string, $limit)` | limit is optional                      |
+| `json.decode, string`                    | `json_decode($string, true)`           |                                        |
+| `json.encode, var`                       | `json_encode($var)`                    |                                        |
 
 
 ## Class
