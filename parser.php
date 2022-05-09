@@ -54,9 +54,9 @@ $tests = [
     if(!$pass) print_r($result);
 }*/
 
-function parse(string $input, ?string $delimiter = ',', bool $omitDelimiter = true): array
+function parse(string $input, string $delimiter = ',', bool $omitDelimiter = true): array
 {
-    print("params delimited by $delimiter called for: $input\n");
+    print("parse delimited by `$delimiter` called for: $input\n");
 
     $depthRound = 0;
     $depthBlock = 0;
@@ -81,11 +81,18 @@ function parse(string $input, ?string $delimiter = ',', bool $omitDelimiter = tr
             ($char === '}' && $depthCurly === 0) and throw new Exception('unexpected `}`');
 
             if ($depthRound === 0 && $depthBlock === 0 && $depthCurly === 0) {
-                if($delimiter === null)
-                    $outputIndex++;
-                else if($char === $delimiter) {
+                $match = true;
+
+                for($j = 0; $j < strlen($delimiter); $j++)
+                    if($input[$i + $j] !== $delimiter[$j]) {
+                        $match = false;
+                        break;
+                    }
+
+                if($match){
                     $outputIndex++;
                     $write = !$omitDelimiter;
+                    if($omitDelimiter) $i += strlen($delimiter) - 1;
                 }
             }
 
@@ -138,35 +145,206 @@ $vars = [
     'concat' => fn(...$a) => implode('', $a),
     'implode' => fn($a) => print_r($a, true), //implode('', $a),
     'php' => new PhpProxy(),
+    'bool' => true,
+    'params' => [
+        ' ', ['nesto', 'drugo', 'trece'],
+    ]
 ];
 
 function evaluate(string $input): mixed
 {
-    print('evaluate called for: ' . $input . "\n");
+    print("evaluate called for: $input\n");
 
     global $vars;
 
     $input = trim($input);
 
-    if($input === 'null') return null;
+    if($input === 'null' || $input === '') return null;
     if($input === 'true') return true;
     if($input === 'false') return false;
     if(is_numeric($input)) return $input + 0;
 
-    //$and = parse($input, '&');
+    // all the str_contains() calls are for performance reasons
+    // even though they might give false positives (e.g. operators in strings)
 
+    // short ternary expression
+    if(str_contains($input, '?:')) {
+        $ternary = parse($input, '?:');
+        if (count($ternary) > 1)
+            foreach ($ternary as $index => $part) {
+                $part = evaluate($part);
+                if ($part || $index === count($ternary) - 1) return $part;
+            }
+    }
+
+    // ternary expression
+    if(str_contains($input, '?')) {
+        $ternary = parse($input, '?');
+        if (count($ternary) > 2) throw new Exception('unexpected `?`');
+        if (count($ternary) === 2) {
+            $values = parse($ternary[1], ':');
+            if (count($values) > 2) throw new Exception('unexpected `:`');
+            $values[1] ??= '""';
+
+            return evaluate($ternary[0]) ? evaluate($values[0]) : evaluate($values[1]);
+        }
+    }
+
+    // multiple AND expressions
+    if(str_contains($input, '&')) {
+        $and = parse($input, '&');
+        if (count($and) > 1) {
+            foreach ($and as $item) if (!evaluate($item)) return false;
+            return true;
+        }
+    }
+
+    // multiple OR expressions
+    if(str_contains($input, '|')) {
+        $or = parse($input, '|');
+        if (count($or) > 1) {
+            foreach ($or as $item) if (evaluate($item)) return true;
+            return false;
+        }
+    }
+
+    // comparison expressions
+    if(str_contains($input, '===')) {
+        $cmp = parse($input, '===');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) !== $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '!==')) {
+        $cmp = parse($input, '!==');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) === $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '==')) {
+        $cmp = parse($input, '==');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) != $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '!=')) {
+        $cmp = parse($input, '!=');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) == $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '>=')) {
+        $cmp = parse($input, '>=');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) < $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '<=')) {
+        $cmp = parse($input, '<=');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) > $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '>')) {
+        $cmp = parse($input, '>');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) <= $first) return false;
+            return true;
+        }
+    }
+    if(str_contains($input, '<')) {
+        $cmp = parse($input, '<');
+        if (count($cmp) > 1) {
+            $first = evaluate(array_shift($cmp));
+            foreach ($cmp as $item) if (evaluate($item) >= $first) return false;
+            return true;
+        }
+    }
+
+    // arithmetic expressions
+    if(str_contains($input, '+')) {
+        $add = parse($input, '+');
+        if (count($add) > 1) {
+            $result = 0;
+            foreach ($add as $item) $result += evaluate($item);
+            return $result;
+        }
+    }
+    if(str_contains($input, '-')) {
+        $sub = parse($input, '-');
+        if (count($sub) > 1) {
+            $result = evaluate(array_shift($sub));
+            foreach ($sub as $item) $result -= evaluate($item);
+            return $result;
+        }
+    }
+    if(str_contains($input, '**')) {
+        $pow = parse($input, '**');
+        if (count($pow) > 1) {
+            $result = evaluate(array_shift($pow));
+            foreach ($pow as $item) $result **= evaluate($item);
+            return $result;
+        }
+    }
+    if(str_contains($input, '*')) {
+        $mul = parse($input, '*');
+        if (count($mul) > 1) {
+            $result = 1;
+            foreach ($mul as $item) $result *= evaluate($item);
+            return $result;
+        }
+    }
+    if(str_contains($input, '/')) {
+        $div = parse($input, '/');
+        if (count($div) > 1) {
+            $result = evaluate(array_shift($div));
+            foreach ($div as $item) $result /= evaluate($item);
+            return $result;
+        }
+    }
+    if(str_contains($input, '%')) {
+        $mod = parse($input, '%');
+        if (count($mod) > 1) {
+            $result = evaluate(array_shift($mod));
+            foreach ($mod as $item) $result %= evaluate($item);
+            return $result;
+        }
+    }
+
+    // string concatenation expression
+    if(str_contains($input, '~')) {
+        $concat = parse($input, '~');
+        if (count($concat) > 1) {
+            $result = '';
+            foreach ($concat as $item) $result .= evaluate($item);
+            return $result;
+        }
+    }
 
     // check if a string
     if(str_starts_with($input, '"')) return json_decode($input);
 
-    // check if negated
+    // check if expression negated
     if(str_starts_with($input, '!'))
         return !evaluate(substr($input, 1));
 
     // if the expression is just wrapped in brackets, remove them
     if(str_starts_with($input, '(')){
         // check if the input ends with a trailing round bracket
-        if(!str_ends_with($input, ']'))
+        if(!str_ends_with($input, ')'))
             throw new Exception("expected closing round bracket");
 
         return evaluate(substr($input, 1, -1));
@@ -177,13 +355,9 @@ function evaluate(string $input): mixed
         // check if the input ends with a trailing block bracket and get rid of both brackets
         if(!str_ends_with($input, ']'))
             throw new Exception("expected closing block bracket");
+
         $input = substr($input, 1, -1);
-
-        $array = parse($input);
-        foreach($array as &$element)
-            $element = evaluate($element);
-
-        return $array;
+        return evaluateList($input);
     }
 
     // check if the expression is a callable call
@@ -201,25 +375,22 @@ function evaluate(string $input): mixed
         if(!is_callable($callable)) throw new Exception("`$before` is not callable");
 
         // evaluate each parameter
-        $params = parse($params);
-        foreach($params as &$param)
-            $param = evaluate($param);
+        $params = evaluateList($params);
 
         return $callable(...$params);
     }
 
     // check if the expression is a nested variable
     if(str_contains($input, '.')) {
-        // get string before and after LAST dot
-        $before = substr($input, 0, strrpos($input, '.'));
-        $after = substr($input, strrpos($input, '.') + 1);
+        $parts = parse($input, '.');
+        $after = array_pop($parts);
+        $before = implode('', $parts);
 
         $var = evaluate($before);
-
         return match(true){
             is_object($var) => $var->$after,
             is_array($var) && array_key_exists($after, $var) => $var[$after],
-            default => throw new Exception("element `$after` in `$before` not found"),
+            default => throw new Exception("element `$after` not found in `$before`"),
         };
     }
 
@@ -228,7 +399,24 @@ function evaluate(string $input): mixed
     return $vars[$input];
 }
 
+function evaluateList(string $params)
+{
+    $params = parse($params, ',');
+    foreach($params as $param) {
+        if(!str_starts_with($param, '...')) {
+            $output[] = evaluate($param);
+            continue;
+        }
+
+        $packed = evaluate(substr($param, 3));
+        if(!is_array($packed)) throw new Exception("can't unpack `$param` - not an array");
+        foreach($packed as $item) $output[] = $item;
+    }
+
+    return $output ?? [];
+}
+
 //var_dump(evaluate('php.print_r(["te(st", null, true], true)'));
 //var_dump(parse('weird("te(st")', '(', false));
 
-var_dump(parse('nesto & drugo |', '&'));
+var_dump(evaluate('php.print_r([...params, "najs"], true)'));
