@@ -4,19 +4,60 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a7b81b024e23da5649008fb99d2701cd",
-    "packages": [],
+    "content-hash": "a7958b38bbb81440f0b7f4eb95e7622a",
+    "packages": [
+        {
+            "name": "leongrdic/smplang",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/leongrdic/php-smplang.git",
+                "reference": "6d977bfce6a48ebb3f67b258dbd4629c740afadf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/leongrdic/php-smplang/zipball/6d977bfce6a48ebb3f67b258dbd4629c740afadf",
+                "reference": "6d977bfce6a48ebb3f67b258dbd4629c740afadf",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "symfony/expression-language": "^6.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Le\\SMPLang\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "homepage": "https://github.com/leongrdic/php-smplang",
+            "support": {
+                "issues": "https://github.com/leongrdic/php-smplang/issues",
+                "source": "https://github.com/leongrdic/php-smplang/tree/master"
+            },
+            "time": "2022-05-10T12:08:11+00:00"
+        }
+    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "leongrdic/smplang": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.0",
+        "php": ">=8.1",
         "ext-dom": "*",
         "ext-libxml": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.2.0"
 }
