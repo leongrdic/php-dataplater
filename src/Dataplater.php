@@ -11,6 +11,7 @@ class Dataplater
 
     protected DOMDocument $doc;
     protected DOMXPath $xpath;
+    protected bool $removeWrapper = true;
 
     /**
      * @throws Exception
@@ -18,7 +19,8 @@ class Dataplater
     public function __construct(
         ?string $filename = null,
         ?string $template = null,
-        public array $vars = []
+        protected array $vars = [],
+        protected string $baseDir = '.',
     )
     {
         if($filename === null && $template === null)
@@ -28,13 +30,21 @@ class Dataplater
             throw new Exception('you can either pass the filename or template string params, not both');
 
         if($filename !== null) {
+            $filename = "{$this->baseDir}/$filename";
             if (!file_exists($filename)) throw new Exception('template file not found');
             $template = file_get_contents($filename);
         }
 
+        if(str_contains($template, '<html'))
+            $this->removeWrapper = false;
+        else
+            $template = "<dataplater>$template</dataplater>";
+
         libxml_use_internal_errors(true);
         $this->doc = new DOMDocument();
-        $this->doc->loadHTML($template);
+        $this->doc->preserveWhiteSpace = false;
+        $this->doc->formatOutput = true;
+        $this->doc->loadHTML($template, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         $this->xpath = new DOMXpath($this->doc);
 
         // all php functions can be accessed through this object
@@ -56,10 +66,11 @@ class Dataplater
         }
 
         $this->execute();
-
-        $this->doc->formatOutput = true;
         $html = $this->doc->saveHTML();
         libxml_clear_errors();
+
+        if($this->removeWrapper)
+            $html = substr($html, 12, -13);
 
         return $html;
     }
@@ -69,7 +80,22 @@ class Dataplater
      */
     private function execute($context = null): void
     {
-        $shortcutAttrs = ['id', 'class', 'title', 'alt', 'value', 'href', 'src', 'style'];
+        // INCLUDE
+        $attr = "data-dp-include";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem){
+            $includeFile = $elem->getAttribute($attr);
+            $includeFile = "{$this->baseDir}/$includeFile";
+
+            if(!file_exists($includeFile))
+                throw new ParseException("include file `$includeFile` not found", $elem);
+
+            $fragment = $this->doc->createDocumentFragment();
+            $html = file_get_contents($includeFile);
+            $fragment->appendXML($html);
+            // TODO: doesn't work for attr=value because of xml standards, will have to create a domdocument instead of DocumentFragment
+
+            $elem->parentNode->replaceChild($fragment, $elem);
+        }
 
         // FOREACH
         $attr = "data-dp-foreach";
@@ -157,6 +183,7 @@ class Dataplater
         }
 
         // ATTRIBUTE SHORTCUTS
+        $shortcutAttrs = ['id', 'class', 'title', 'alt', 'value', 'href', 'src', 'style'];
         foreach($shortcutAttrs as $targetAttr) {
             $attr = "data-dp-$targetAttr";
             foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
