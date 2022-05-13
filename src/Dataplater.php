@@ -39,25 +39,25 @@ class Dataplater
 
         // all php functions can be accessed through this object
         $this->vars['php'] = new PhpProxy();
-
-        // used to parse foreach attributes
-        $this->vars['dataplater_foreach'] = $this->foreachParser(...);
     }
 
     /**
      * @throws ParseException
      * @return string rendered HTML as a string
      */
-    public function render(?array $vars = null): string
+    public function render(array $vars = []): string
     {
-        if(is_array($vars)){
+        if(!empty($vars)){
             $instance = clone $this;
-            $instance->vars = array_merge($instance->vars, $vars);
-            return $instance->render();
+            $instance->vars = [...$instance->vars, ...$vars];
+            $result = $instance->render();
+            unset($instance);
+            return $result;
         }
 
         $this->execute();
 
+        $this->doc->formatOutput = true;
         $html = $this->doc->saveHTML();
         libxml_clear_errors();
 
@@ -69,22 +69,22 @@ class Dataplater
      */
     private function execute($context = null): void
     {
-        $attributes = ['id', 'class', 'title', 'alt', 'value', 'href', 'src', 'style'];
+        $shortcutAttrs = ['id', 'class', 'title', 'alt', 'value', 'href', 'src', 'style'];
 
-        // LOOP
-
-        $selector = "data-dp-foreach";
-        foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem){
-            $params = $elem->getAttribute($selector);
-
-            $smpl = new SMPLang($this->vars);
-            [$iterable, $varIndex, $varValue] = $smpl->evaluate("dataplater_foreach($params)");
-
+        // FOREACH
+        $attr = "data-dp-foreach";
+        $attrKey = "data-dp-key";
+        $attrVar = "data-dp-var";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem){
+            $iterable = $this->eval($elem->getAttribute($attr), $elem);
             if(!is_iterable($iterable)) throw new ParseException("expression result not iterable", $elem);
-            if($varValue) throw new ParseException('missing value variable name', $elem);
 
-            foreach($params[0] as $index => $value) {
-                if(!empty($varIndex)) $this->vars[$varIndex] = $index;
+            $varKey = $elem->getAttribute($attrKey);
+            $varValue = $elem->getAttribute($attrVar);
+            if(empty($varValue)) throw new ParseException("missing value variable name in `$attrKey`", $elem);
+
+            foreach($iterable as $key => $value) {
+                if(!empty($varKey)) $this->vars[$varKey] = $key;
                 $this->vars[$varValue] = $value;
 
                 foreach ($elem->childNodes as $childNode) {
@@ -101,23 +101,23 @@ class Dataplater
         }
 
         // IF
-        $selector = "data-dp-if";
-        foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem) {
-            $result = $this->eval($elem->getAttribute($selector), $elem);
+        $attr = "data-dp-if";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+            $result = $this->eval($elem->getAttribute($attr), $elem);
 
-            if($result) $elem->removeAttribute($selector);
+            if($result) $elem->removeAttribute($attr);
             else $elem->parentNode->removeChild($elem);
         }
 
         // TEXT OR ATTRIBUTE
-        $selector = "data-dp";
+        $attr = "data-dp";
         $selectorAttr = "data-dp-attr";
-        foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem) {
-            $result = $this->eval($elem->getAttribute($selector), $elem);
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+            $result = $this->eval($elem->getAttribute($attr), $elem);
 
             if($elem->hasAttribute($selectorAttr)) {
                 if($result === null){
-                    $elem->removeAttribute($selector);
+                    $elem->removeAttribute($attr);
                     $elem->removeAttribute($selectorAttr);
                     continue;
                 }
@@ -126,25 +126,25 @@ class Dataplater
                 if($targetAttr === '') throw new ParseException('target attribute empty', $elem);
 
                 $elem->setAttribute($targetAttr, $result);
-                $elem->removeAttribute($selector);
+                $elem->removeAttribute($attr);
                 $elem->removeAttribute($selectorAttr);
             } else {
                 if($result === null){
-                    $elem->removeAttribute($selector);
+                    $elem->removeAttribute($attr);
                     continue;
                 }
 
                 $elem->nodeValue = $result;
-                $elem->removeAttribute($selector);
+                $elem->removeAttribute($attr);
             }
         }
 
         // HTML
-        $selector = "data-dp-html";
-        foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem) {
-            $result = $this->eval($elem->getAttribute($selector), $elem);
+        $attr = "data-dp-html";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+            $result = $this->eval($elem->getAttribute($attr), $elem);
             if($result === null){
-                $elem->removeAttribute($selector);
+                $elem->removeAttribute($attr);
                 continue;
             }
 
@@ -153,21 +153,21 @@ class Dataplater
             $elem->nodeValue = '';
             $elem->appendChild($fragment);
 
-            $elem->removeAttribute($selector);
+            $elem->removeAttribute($attr);
         }
 
         // ATTRIBUTE SHORTCUTS
-        foreach($attributes as $attribute) {
-            $selector = "data-dp-$attribute";
-            foreach ($this->xpath->query("descendant-or-self::*[@$selector]", $context) as $elem) {
-                $result = $this->eval($elem->getAttribute($selector), $elem);
+        foreach($shortcutAttrs as $targetAttr) {
+            $attr = "data-dp-$targetAttr";
+            foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+                $result = $this->eval($elem->getAttribute($attr), $elem);
                 if($result === null){
-                    $elem->removeAttribute($selector);
+                    $elem->removeAttribute($attr);
                     continue;
                 }
 
-                $elem->setAttribute($attribute, $result);
-                $elem->removeAttribute($selector);
+                $elem->setAttribute($targetAttr, $result);
+                $elem->removeAttribute($attr);
             }
         }
     }
@@ -180,21 +180,13 @@ class Dataplater
         try {
             $smpl = new SMPLang($this->vars);
             $result = $smpl->evaluate($expression);
+            unset($smpl);
+
+            return is_callable($result) ? $result() : $result;
         }
         catch(\Le\SMPLang\Exception $e) {
             throw new ParseException($e->getMessage(), $node, $e);
         }
-
-        return is_callable($result) ? $result() : $result;
-    }
-
-    private function foreachParser(array $iterable, string $valueOrKey, ?string $value = null): array
-    {
-        return [
-            $iterable,
-            ($value === null ? null : $valueOrKey),
-            ($value === null ? $valueOrKey : $value),
-        ];
     }
 
 }
