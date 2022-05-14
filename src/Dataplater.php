@@ -80,10 +80,43 @@ class Dataplater
         // IF
         $attr = "data-dp-if";
         foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
-            $result = $this->eval($elem->getAttribute($attr), $elem);
+            // search if any parents recursively have a foreach attribute, if so, skip this element
+            $parent = $elem;
+            while($parent = $parent->parentNode){
+                if(!$parent instanceof DOMDocument && $parent->hasAttribute('data-dp-foreach'))
+                    continue 2;
+            }
 
+            $result = $this->eval($elem->getAttribute($attr), $elem);
             if($result) $elem->removeAttribute($attr);
             else $elem->parentNode->removeChild($elem);
+        }
+
+        // FOREACH
+        $attr = "data-dp-foreach";
+        $attrKey = "data-dp-key";
+        $attrVar = "data-dp-var";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem){
+            $iterable = $this->eval($elem->getAttribute($attr), $elem);
+            if(!is_iterable($iterable)) throw new ParseException("expression result not iterable", $elem);
+
+            $varKey = $elem->getAttribute($attrKey);
+            $varValue = $elem->getAttribute($attrVar)
+                ?: throw new ParseException("missing value variable name in `$attrKey`", $elem);
+
+            foreach($iterable as $key => $value) {
+                if(!empty($varKey)) $this->vars[$varKey] = $key;
+                $this->vars[$varValue] = $value;
+
+                foreach ($elem->childNodes as $childNode) {
+                    if(!$childNode instanceof DOMElement) continue;
+                    $clone = $childNode->cloneNode(true);
+                    $elem->parentNode->insertBefore($clone, $elem);
+                    $this->execute($clone);
+                }
+            }
+
+            $elem->parentNode->removeChild($elem); // remove the foreach template element
         }
 
         // INCLUDE
@@ -121,33 +154,6 @@ class Dataplater
                 $child = $this->doc->importNode($child, true);
                 $elem->appendChild($child);
             }
-        }
-
-        // FOREACH
-        $attr = "data-dp-foreach";
-        $attrKey = "data-dp-key";
-        $attrVar = "data-dp-var";
-        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem){
-            $iterable = $this->eval($elem->getAttribute($attr), $elem);
-            if(!is_iterable($iterable)) throw new ParseException("expression result not iterable", $elem);
-
-            $varKey = $elem->getAttribute($attrKey);
-            $varValue = $elem->getAttribute($attrVar)
-                ?: throw new ParseException("missing value variable name in `$attrKey`", $elem);
-
-            foreach($iterable as $key => $value) {
-                if(!empty($varKey)) $this->vars[$varKey] = $key;
-                $this->vars[$varValue] = $value;
-
-                foreach ($elem->childNodes as $childNode) {
-                    if(!$childNode instanceof DOMElement) continue;
-                    $clone = $childNode->cloneNode(true);
-                    $elem->parentNode->insertBefore($clone, $elem);
-                    $this->execute($clone);
-                }
-            }
-
-            $elem->parentNode->removeChild($elem); // remove the foreach template element
         }
 
         // TEXT OR ATTRIBUTE
