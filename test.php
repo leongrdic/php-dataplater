@@ -41,6 +41,7 @@ $dp = new Le\Dataplater\Dataplater(template: <<<END
 <var data-dp=1+3></var>
 <div data-dp=php.implode(',',php.explode('-','this-is-a-sentence'))></div>
 <span data-dp-html=element></span>
+<span data-dp-html=uni></span>
 END);
 
 $result = $dp->render([
@@ -48,6 +49,7 @@ $result = $dp->render([
     'age' => 30,
     'test' => '',
     'element' => '<div data-dp=age>this is some string</div>',
+    'uni' => 'šćžđ',
 ]);
 
 echo $result;

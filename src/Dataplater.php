@@ -38,7 +38,7 @@ class Dataplater
         if(str_contains($template, '<html'))
             $this->removeWrapper = false;
         else
-            $template = "<dataplater>$template</dataplater>";
+            $template = "<?xml encoding=\"utf-8\" ?><dataplater>$template</dataplater>";
 
         libxml_use_internal_errors(true);
         $this->doc = $this->domDocumentFromHtml($template);
@@ -67,7 +67,7 @@ class Dataplater
         libxml_clear_errors();
 
         if($this->removeWrapper)
-            $html = substr($html, 12, -13);
+            $html = substr($html, 37, -13);
 
         return $html;
     }
@@ -96,7 +96,7 @@ class Dataplater
                 throw new ParseException("include file `$includeFile` not found", $elem);
 
             $html = file_get_contents($includeFile);
-            $doc = $this->domDocumentFromHtml("<dataplater>$html</dataplater>");
+            $doc = $this->domDocumentFromHtml("<?xml encoding=\"utf-8\" ?><dataplater>$html</dataplater>");
             $wrapper = $doc->getElementsByTagName('dataplater')->item(0);
 
             foreach($wrapper->childNodes as $child){
@@ -115,7 +115,7 @@ class Dataplater
             if($result === null) continue;
 
             $elem->nodeValue = '';
-            $doc = $this->domDocumentFromHtml("<dataplater>$result</dataplater>");
+            $doc = $this->domDocumentFromHtml("<?xml encoding=\"utf-8\" ?><dataplater>$result</dataplater>");
             $wrapper = $doc->getElementsByTagName('dataplater')->item(0);
             foreach($wrapper->childNodes as $child){
                 $child = $this->doc->importNode($child, true);
