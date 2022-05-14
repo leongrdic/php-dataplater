@@ -140,9 +140,9 @@ class Dataplater
         foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
             $targetAttr = $elem->getAttribute($selectorAttr) ?: null;
             if($targetAttr !== null) $elem->removeAttribute($selectorAttr);
-            $elem->removeAttribute($attr);
 
             $result = $this->eval($elem->getAttribute($attr), $elem);
+            $elem->removeAttribute($attr);
             if($result === null) continue;
 
             if ($targetAttr === null) $elem->nodeValue = $result;
