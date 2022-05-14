@@ -30,7 +30,7 @@ class Dataplater
             throw new Exception('you can either pass the filename or template string params, not both');
 
         if($filename !== null) {
-            $filename = "{$this->baseDir}/$filename";
+            $filename = "$this->baseDir/$filename";
             if (!file_exists($filename)) throw new Exception('template file not found');
             $template = file_get_contents($filename);
         }
@@ -41,10 +41,7 @@ class Dataplater
             $template = "<dataplater>$template</dataplater>";
 
         libxml_use_internal_errors(true);
-        $this->doc = new DOMDocument();
-        $this->doc->preserveWhiteSpace = false;
-        $this->doc->formatOutput = true;
-        $this->doc->loadHTML($template, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $this->doc = $this->domDocumentFromHtml($template);
         $this->xpath = new DOMXpath($this->doc);
 
         // all php functions can be accessed through this object
@@ -80,21 +77,34 @@ class Dataplater
      */
     private function execute($context = null): void
     {
+        // IF
+        $attr = "data-dp-if";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+            $result = $this->eval($elem->getAttribute($attr), $elem);
+
+            if($result) $elem->removeAttribute($attr);
+            else $elem->parentNode->removeChild($elem);
+        }
+
         // INCLUDE
         $attr = "data-dp-include";
         foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem){
             $includeFile = $elem->getAttribute($attr);
-            $includeFile = "{$this->baseDir}/$includeFile";
+            $includeFile = "$this->baseDir/$includeFile";
 
             if(!file_exists($includeFile))
                 throw new ParseException("include file `$includeFile` not found", $elem);
 
-            $fragment = $this->doc->createDocumentFragment();
             $html = file_get_contents($includeFile);
-            $fragment->appendXML($html);
-            // TODO: doesn't work for attr=value because of xml standards, will have to create a domdocument instead of DocumentFragment
+            $doc = $this->domDocumentFromHtml("<dataplater>$html</dataplater>");
+            $wrapper = $doc->getElementsByTagName('dataplater')->item(0);
 
-            $elem->parentNode->replaceChild($fragment, $elem);
+            foreach($wrapper->childNodes as $child){
+                $child = $this->doc->importNode($child, true);
+                $elem->parentNode->insertBefore($child, $elem);
+            }
+
+            $elem->parentNode->removeChild($elem);
         }
 
         // FOREACH
@@ -106,8 +116,8 @@ class Dataplater
             if(!is_iterable($iterable)) throw new ParseException("expression result not iterable", $elem);
 
             $varKey = $elem->getAttribute($attrKey);
-            $varValue = $elem->getAttribute($attrVar);
-            if(empty($varValue)) throw new ParseException("missing value variable name in `$attrKey`", $elem);
+            $varValue = $elem->getAttribute($attrVar)
+                ?: throw new ParseException("missing value variable name in `$attrKey`", $elem);
 
             foreach($iterable as $key => $value) {
                 if(!empty($varKey)) $this->vars[$varKey] = $key;
@@ -115,10 +125,8 @@ class Dataplater
 
                 foreach ($elem->childNodes as $childNode) {
                     if(!$childNode instanceof DOMElement) continue;
-
                     $clone = $childNode->cloneNode(true);
-                    $elem->parentNode->appendChild($clone);
-
+                    $elem->parentNode->insertBefore($clone, $elem);
                     $this->execute($clone);
                 }
             }
@@ -126,60 +134,35 @@ class Dataplater
             $elem->parentNode->removeChild($elem); // remove the foreach template element
         }
 
-        // IF
-        $attr = "data-dp-if";
-        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
-            $result = $this->eval($elem->getAttribute($attr), $elem);
-
-            if($result) $elem->removeAttribute($attr);
-            else $elem->parentNode->removeChild($elem);
-        }
-
         // TEXT OR ATTRIBUTE
         $attr = "data-dp";
         $selectorAttr = "data-dp-attr";
         foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+            $targetAttr = $elem->getAttribute($selectorAttr) ?: null;
+            if($targetAttr !== null) $elem->removeAttribute($selectorAttr);
+            $elem->removeAttribute($attr);
+
             $result = $this->eval($elem->getAttribute($attr), $elem);
+            if($result === null) continue;
 
-            if($elem->hasAttribute($selectorAttr)) {
-                if($result === null){
-                    $elem->removeAttribute($attr);
-                    $elem->removeAttribute($selectorAttr);
-                    continue;
-                }
-
-                $targetAttr = $elem->getAttribute($selectorAttr);
-                if($targetAttr === '') throw new ParseException('target attribute empty', $elem);
-
-                $elem->setAttribute($targetAttr, $result);
-                $elem->removeAttribute($attr);
-                $elem->removeAttribute($selectorAttr);
-            } else {
-                if($result === null){
-                    $elem->removeAttribute($attr);
-                    continue;
-                }
-
-                $elem->nodeValue = $result;
-                $elem->removeAttribute($attr);
-            }
+            if ($targetAttr === null) $elem->nodeValue = $result;
+            else $elem->setAttribute($targetAttr, $result);
         }
 
         // HTML
         $attr = "data-dp-html";
         foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
             $result = $this->eval($elem->getAttribute($attr), $elem);
-            if($result === null){
-                $elem->removeAttribute($attr);
-                continue;
-            }
-
-            $fragment = $this->doc->createDocumentFragment();
-            $fragment->appendXML($result);
-            $elem->nodeValue = '';
-            $elem->appendChild($fragment);
-
             $elem->removeAttribute($attr);
+            if($result === null) continue;
+
+            $elem->nodeValue = '';
+            $doc = $this->domDocumentFromHtml("<dataplater>$result</dataplater>");
+            $wrapper = $doc->getElementsByTagName('dataplater')->item(0);
+            foreach($wrapper->childNodes as $child){
+                $child = $this->doc->importNode($child, true);
+                $elem->appendChild($child);
+            }
         }
 
         // ATTRIBUTE SHORTCUTS
@@ -188,13 +171,8 @@ class Dataplater
             $attr = "data-dp-$targetAttr";
             foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
                 $result = $this->eval($elem->getAttribute($attr), $elem);
-                if($result === null){
-                    $elem->removeAttribute($attr);
-                    continue;
-                }
-
-                $elem->setAttribute($targetAttr, $result);
                 $elem->removeAttribute($attr);
+                if($result !== null) $elem->setAttribute($targetAttr, $result);
             }
         }
     }
@@ -214,6 +192,15 @@ class Dataplater
         catch(\Le\SMPLang\Exception $e) {
             throw new ParseException($e->getMessage(), $node, $e);
         }
+    }
+
+    private function domDocumentFromHtml(string $html): DOMDocument
+    {
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        $doc->formatOutput = true;
+        $doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        return $doc;
     }
 
 }
