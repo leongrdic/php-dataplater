@@ -31,7 +31,7 @@ class Dataplater
 
         if($filename !== null) {
             $filename = "$this->baseDir/$filename";
-            if (!file_exists($filename)) throw new Exception('template file not found');
+            if (!file_exists($filename)) throw new Exception("template file `$filename` not found");
             $template = file_get_contents($filename);
         }
 
