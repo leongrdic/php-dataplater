@@ -107,6 +107,22 @@ class Dataplater
             $elem->parentNode->removeChild($elem);
         }
 
+        // HTML
+        $attr = "data-dp-html";
+        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
+            $result = $this->eval($elem->getAttribute($attr), $elem);
+            $elem->removeAttribute($attr);
+            if($result === null) continue;
+
+            $elem->nodeValue = '';
+            $doc = $this->domDocumentFromHtml("<dataplater>$result</dataplater>");
+            $wrapper = $doc->getElementsByTagName('dataplater')->item(0);
+            foreach($wrapper->childNodes as $child){
+                $child = $this->doc->importNode($child, true);
+                $elem->appendChild($child);
+            }
+        }
+
         // FOREACH
         $attr = "data-dp-foreach";
         $attrKey = "data-dp-key";
@@ -147,22 +163,6 @@ class Dataplater
 
             if ($targetAttr === null) $elem->nodeValue = $result;
             else $elem->setAttribute($targetAttr, $result);
-        }
-
-        // HTML
-        $attr = "data-dp-html";
-        foreach ($this->xpath->query("descendant-or-self::*[@$attr]", $context) as $elem) {
-            $result = $this->eval($elem->getAttribute($attr), $elem);
-            $elem->removeAttribute($attr);
-            if($result === null) continue;
-
-            $elem->nodeValue = '';
-            $doc = $this->domDocumentFromHtml("<dataplater>$result</dataplater>");
-            $wrapper = $doc->getElementsByTagName('dataplater')->item(0);
-            foreach($wrapper->childNodes as $child){
-                $child = $this->doc->importNode($child, true);
-                $elem->appendChild($child);
-            }
         }
 
         // ATTRIBUTE SHORTCUTS

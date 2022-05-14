@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/leongrdic/php-smplang.git",
-                "reference": "4b93b22c9579f27f4cb1cab4c881323957e6ce5b"
+                "reference": "4d13ce3e4732b960d9f39aaa1c506a970cdcb43e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/leongrdic/php-smplang/zipball/4b93b22c9579f27f4cb1cab4c881323957e6ce5b",
-                "reference": "4b93b22c9579f27f4cb1cab4c881323957e6ce5b",
+                "url": "https://api.github.com/repos/leongrdic/php-smplang/zipball/4d13ce3e4732b960d9f39aaa1c506a970cdcb43e",
+                "reference": "4d13ce3e4732b960d9f39aaa1c506a970cdcb43e",
                 "shasum": ""
             },
             "require": {
@@ -39,7 +39,7 @@
                 "issues": "https://github.com/leongrdic/php-smplang/issues",
                 "source": "https://github.com/leongrdic/php-smplang/tree/master"
             },
-            "time": "2022-05-13T14:41:40+00:00"
+            "time": "2022-05-14T17:35:09+00:00"
         }
     ],
     "packages-dev": [],

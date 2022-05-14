@@ -47,7 +47,7 @@ $result = $dp->render([
     'name' => 'John',
     'age' => 30,
     'test' => '',
-    'element' => '<div title=haha>this is some string</div>',
+    'element' => '<div data-dp=age>this is some string</div>',
 ]);
 
 echo $result;
