@@ -181,8 +181,6 @@ You can call this method multiple times on the same object with different vars t
 1. Includes are inserted (single level only)
 2. `if` checks are performed (except for those in loops)
 3. Loops are performed (recursively) and their contents are fully rendered (which allows for nested loops; including `if` checks)
-
-Rest of the document:
 4. HTML insertions are performed
 5. Text and attribute insertions are performed
 
