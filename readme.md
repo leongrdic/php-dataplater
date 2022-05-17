@@ -26,6 +26,49 @@ composer require leongrdic/dataplater
 - PHP 8.1+
 - DOM & XML extensions
 
+## Example
+
+I actually created an invoice template for Dataplater that I use commercially and in production.
+
+You can view the template source [here](examples/invoice.html), but also try opening it in a browser!
+
+## Usage
+
+```php
+$dp = new Le\Dataplater\Dataplater(
+    filename: 'template.html', // path relative to baseDir or absolutePath
+    // OR
+    template: '<html>...</html>', // also doesn't have to be a full HTML document
+    vars: [
+        'var' => 'value',
+    ],
+    baseDir: 'app/templates/' // used for includes (defaults to '.')
+);
+```
+
+When creating an object, pass your template filename as the first constructor parameter.
+
+If you instead want to load template HTML from a string, skip the first param using named arguments and provide only the `template` param.
+
+To define global vars that will be accessible in all renders, pass them to the `vars` param.
+
+If you want to use a different base directory for includes, pass it to the `baseDir` param.
+
+You can now reuse this `Le\Dataplater\Dataplater` object to render multiple documents using different vars.
+
+```php
+$html = $dp->render([
+    'var' => 'local value',
+]);
+```
+
+The `render()` method renders the template and returns the rendered HTML as a string.
+
+If any variables are passed, they will be used to render the template and override any global vars (passed in the object constructor).
+
+You can call this method multiple times on the same object with different vars to render multiple different documents.
+
+
 ## Attribute reference
 
 All following `data-dp` attributes are removed from the template after rendering.
@@ -138,43 +181,9 @@ php.implode('-', php.explode(' ', someText))
 
 Keep in mind you can still pass your own closure variables and use them in your templates.
 
+When the expression returns a closure, Dataplater will attempt to call it (without any params) and use the result instead of the closure.
+
 Dataplater wraps all SMPL exceptions in a `Le\Dataplater\ParseException` which gives you access to the line number and the causing HTML element.
-
-## Usage
-
-```php
-$dp = new Le\Dataplater\Dataplater(
-    filename: 'template.html', // path relative to baseDir or absolutePath
-    // OR
-    template: '<html>...</html>', // also doesn't have to be a full HTML document
-    vars: [
-        'var' => 'value',
-    ],
-    baseDir: 'app/templates/' // used for includes (defaults to '.')
-);
-```
-
-When creating an object, pass your template filename as the first constructor parameter.
-
-If you instead want to load template HTML from a string, skip the first param using named arguments and provide only the `template` param.
-
-To define global vars that will be accessible in all renders, pass them to the `vars` param.
-
-If you want to use a different base directory for includes, pass it to the `baseDir` param.
-
-You can now reuse this `Le\Dataplater\Dataplater` object to render multiple documents using different vars.
-
-```php
-$html = $dp->render([
-    'var' => 'local value',
-]);
-```
-
-The `render()` method renders the template and returns the rendered HTML as a string.
-
-If any variables are passed, they will be used to render the template and override any global vars (passed in the object constructor).
-
-You can call this method multiple times on the same object with different vars to render multiple different documents.
 
 ## Rendering order
 
@@ -188,6 +197,6 @@ You can call this method multiple times on the same object with different vars t
 
 Dataplater heavily relies on the PHP DOM extension and all escaping is done by the DOM extension natively, so passing user-generated data into Dataplater vars should be safe, although if you do use data from untrusted sources, make sure proper validations is done.
 
-Also keep in mind that DOM extension sometimes reformats HTML (like adds attribute brackets, removes closing tags if unnecessary, etc.) and that the code coming out of Dataplater is not going to be formatted nicely.
+Also keep in mind that DOM extension sometimes reformats HTML (like adds attribute brackets, removes closing tags if unnecessary, etc.) and that the code coming out of Dataplater is not going to be indented well.
 
 Any contributions to this project are welcome!
