@@ -1,6 +1,20 @@
 # Dataplater
 
-PHP template engine that uses data-attributes and keeps HTML templates valid and clean. Scroll down to see a usage example.
+PHP templating engine that uses HTML data-attributes and keeps templates valid and clean.
+This makes Dataplater perfect for creating document templates like invoices, contracts, emails, etc. which can be previewed in the browser before rendering.
+
+## Features
+- 💻 make HTML templates that look great even before rendering
+- 💾 use data-attributes to pass data into your template
+- ⚡ powerful expression language ([SMPLang](https://github.com/leongrdic/php-smplang))
+- 📩 automatic escaping
+- 👍 UTF-8 support
+- 🧮 access to php functions in expressions
+- 🔗 include HTML files
+- ➿ nested foreach loops
+- 🔤 set inner HTML or custom attributes of elements
+- 🗑️ delete elements based on conditions
+
 
 ## Install
 ```
@@ -9,185 +23,173 @@ composer require leongrdic/dataplater
 
 ### Requirements
 
-- PHP 8.0 +
-- XML extension
-- DOM extension
+- PHP 8.1+
+- DOM & XML extensions
 
-## Example
+## Attribute reference
 
-`template.html`:
+All following `data-dp` attributes are removed from the template after rendering.
+
+### `data-dp-include`
+**Value**: filename of the HTML template to include.
+
+Content of the included file will be inserted into the template replacing the element with the `data-dp-include` attribute.
+
 ```html
-<table>
-    <template data-var-foreach="users; row">
-    <tr>
-        <template data-var-foreach="row; cell">
-        <td data-var-text="cell"></td>
-        </template>
-    </tr>
-    </template>
-</table>
-<span>table has <var data-var-text="f/count, users"></var> rows</span>
-
-<div>
-    <template data-var-foreach="links; index; link">
-    <a data-var-href="link.url" data-var-text='f/text.concat, index, v/" ", link.name'></a><br>
-    </template>
-</div>
-
-<div data-var-if-text='f/compare.equal, balance, v/0 ; lang.balance_empty'>Your current balance is <var data-var-text="balance"></var> dollars</div>
-
-<ul>
-    <template data-var-foreach='f/text.explode, v/" ", sentence, v/4 ; word'>
-    <li data-var-text="word"></li>
-    </template>
-</ul>
+<template data-dp-include="include.html"></template>
 ```
 
-PHP:
-```php
-<?php
-require_once 'vendor/autoload.php';
+### `data-dp-if`
+**Value**: SMPL expression
 
-$dp = new \Le\Dataplater('template.html');
-echo $dp->render([
-    'users' => [
-        ['Demo', 'User', '01.01.2020.'],
-        ['John', 'Doe', '31.12.2021.'],
+If the expression evaluates to `true`, the element will be rendered, otherwise it will be removed.
+
+```html
+<div data-dp-if=false>this element will always be removed</div>
+
+<div data-dp-if="id > 1">this will be rendered if the condition is met</div>
+```
+
+### `data-dp-foreach`
+**Value**: SMPL expression
+
+**Additional attributes**:
+- `data-dp-key`: variable name to use for the current element key (optional)
+- `data-dp-value`: variable name to use for the current element value 
+
+The expression must evaluate to an array or an iterable object.
+Children of the element with the `data-dp-foreach` attribute will be copied for each iteration and the `data-dp-key` and `data-dp-value` variables will be set to the current element key and value to be used in those child elements.
+
+The element containing the `data-dp-foreach` attribute will be removed after the loop.
+
+```html
+<ul>
+    <template data-dp-foreach=['google','youtube'] data-dp-var=name data-dp-key=id>
+        <li data-dp="id+1 ~ '. ' ~ name"></li>
+    </template>
+</ul>
+
+<template data-dp-foreach=users data-dp-var=user>
+    <a data-dp-href=user.url data-dp=user.name></a>
+</template>
+```
+
+### `data-dp-html`
+**Value**: SMPL expression
+
+If the expression evaluates to `null`, no action will be taken (the element will be rendered without any modifications).
+
+The expression otherwise must evaluate to a string. The string will be inserted into the element as HTML replacing the element's content.
+
+The inserted HTML will have only `data-dp`, `data-dp-attr` and attribute shortcuts rendered which means that other attributes like `data-dp-if` or `data-dp-foreach` will be ignored.
+
+```html
+<div data-dp-html="'<b>' ~ name ~ '</b>'"></div>
+
+<div data-dp-html="'<b data-dp=name></b>'"></div>
+```
+Note the quotes around the expression in the second example - the outer quotes are defining content of the HTML attribute and the inner quotes are defining a string within the SMPL expression.
+
+### `data-dp`
+**Value**: SMPL expression
+
+If the expression evaluates to `null`, no action will be taken (the element will be rendered without any modifications).
+
+The expression otherwise must evaluate to a string. The string will be inserted into the element as escaped text replacing the element's content.
+
+```html
+<span data-dp=message></span>
+
+<var data-dp="balance > 0 ? balance : 'empty balance'"></var>
+```
+
+### `data-dp-attr`
+**Value**: `attribute name ; SMPL expression`
+
+If the expression evaluates to `null`, the attribute won't be set, and it's value will be left as is (if any).
+
+The expression otherwise must evaluate to a string. The string will be escaped and inserted as the attribute value for the desired attribute.
+
+Dataplater also provides a few shortcut for the following attributes: `id` `class` `title` `alt` `value` `href` `src` `style` using the syntax: **data-dp-`attribute`**.
+
+```html
+<span data-dp-attr="title ; message"></span>
+<!-- or -->
+<var data-dp-title=message></var>
+
+<div data-dp-class="!hidden ? 'show'"></div>
+```
+
+## Expression reference
+
+Dataplater uses the [SMPLang](https://github.com/leongrdic/php-smplang) expression language. Refer to the SMPLang readme for more information about the syntax and supported operators.
+
+Vars from Dataplater are accessible as variables in the SMPL expression.
+
+Dataplater also provides a global object `php` which is basically a proxy to all php functions. Use it to access any PHP function from within your expressions:
+
+```
+php.count(users) > 0
+
+php.array_reverse(links)
+
+php.implode('-', php.explode(' ', someText))
+```
+
+Keep in mind you can still pass your own closure variables and use them in your templates.
+
+Dataplater wraps all SMPL exceptions in a `Le\Dataplater\ParseException` which gives you access to the line number and the causing HTML element.
+
+## Usage
+
+```php
+$dp = new Le\Dataplater\Dataplater(
+    filename: 'template.html', // path relative to baseDir or absolutePath
+    // OR
+    template: '<html>...</html>', // also doesn't have to be a full HTML document
+    vars: [
+        'var' => 'value',
     ],
-    'links' => [
-        ['name' => 'Google', 'url' => 'https://google.com/'],
-        ['name' => 'YouTube', 'url' => 'https://youtube.com/'],
-        ['name' => 'Facebook', 'url' => 'https://facebook.com/']
-    ],
-    'items' => [
-        'first',
-        'second',
-        'third',
-        'fourth'
-    ],
-    'balance' => 10,
-    'sentence' => 'split this sentence by spaces',
-    'lang' => function(){
-        return [
-            'balance_empty' => 'Your balance is empty.',
-            'some_text' => 'Translation'
-        ];
-    }
+    baseDir: 'app/templates/' // used for includes (defaults to '.')
+);
+```
+
+When creating an object, pass your template filename as the first constructor parameter.
+
+If you instead want to load template HTML from a string, skip the first param using named arguments and provide only the `template` param.
+
+To define global vars that will be accessible in all renders, pass them to the `vars` param.
+
+If you want to use a different base directory for includes, pass it to the `baseDir` param.
+
+You can now reuse this `Le\Dataplater\Dataplater` object to render multiple documents using different vars.
+
+```php
+$html = $dp->render([
+    'var' => 'local value',
 ]);
 ```
 
-Output:
-```html
-<table>
-    <tr>
-        <td>Demo</td>
-        <td>User</td>
-        <td>01.01.2020.</td>
-    </tr>
-    <tr>
-        <td>John</td>
-        <td>Doe</td>
-        <td>31.12.2021.</td>
-    </tr>
-</table>
-<span>table has <var>2</var> rows</span>
+The `render()` method renders the template and returns the rendered HTML as a string.
 
-<div>
-    <a href="https://google.com/">0 Google</a><br>
-    <a href="https://youtube.com/">1 YouTube</a><br>
-    <a href="https://facebook.com/">2 Facebook</a><br>
-</div>
+If any variables are passed, they will be used to render the template and override any global vars (passed in the object constructor).
 
-<div>Your current balance is <var>10</var> dollars</div>
+You can call this method multiple times on the same object with different vars to render multiple different documents.
 
-<ul>
-    <li>split</li>
-    <li>this</li>
-    <li>sentence</li>
-    <li>by spaces</li>
-</ul>
-```
-(not as nicely formatted as here)
+## Rendering order
 
+1. Includes are inserted (single level only)
+2. `if` checks are performed (except for those in loops)
+3. Loops are performed (recursively) and their contents are fully rendered (which allows for nested loops; including `if` checks)
 
-## Attributes
+Rest of the document:
+4. HTML insertions are performed
+5. Text and attribute insertions are performed
 
-| **attribute name**                                                    | **attribute value**                                                                                                                                                          | result                                                                                                       |
-|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| `data-var-[text / html]`                                              | `value expression`                                                                                                                                                           | inserts or replaces (html) content with supplied value                                                       |
-| `data-var-[id / class / title / alt / value / href / src / style]`    | `value expression`                                                                                                                                                           | inserts or replaces attribute value with supplied value                                                      |
-| `data-var-attr`                                                       | `attribute name ; value expression`                                                                                                                                          | adds or replaces attribute value for a specified attribute                                                   |
-| `data-var-foreach`                                                    | `expression to iterate through ; variable name for value`<br/>or<br/>`expression to iterate through ; variable name for key ; variable name for value`                       | iterates through var and writes value and/or key variables                                                   |
-| `data-var-if`                                                         | `condition expression`                                                                                                                                                       | removes block if condition not true                                                                          |
-| `data-var-if-[text/html]`                                             | `condition expression ; value expression if true`<br/>or<br/>`condition expression ; value expression if true ; value expression if false`                                   | inserts or replaces (html) content with value expression depending on the condition expressions result       |
-| `data-var-if-[id / class / title / alt / value / href / src / style]` | `condition expression ; value expression if true`<br/>or<br/>`condition expression ; value expression if true ; value expression if false`                                   | adds or replaces attribute value for the attribute depending on the condition expressions result             |
-| `data-var-if-attr`                                                    | `attribute name ; condition expression ; value expression if true`<br/>or<br/>`attribute name ; condition expression ; value expression if true ; value expression if false` | adds or replaces attribute value for a specified attribute name depending on the condition expression result |
+## Notes
 
+Dataplater heavily relies on the PHP DOM extension and all escaping is done by the DOM extension natively, so passing user-generated data into Dataplater vars should be safe, although if you do use data from untrusted sources, make sure proper validations is done.
 
-## Expression syntax:
+Also keep in mind that DOM extension sometimes reformats HTML (like adds attribute brackets, removes closing tags if unnecessary, etc.) and that the code coming out of Dataplater is not going to be formatted nicely.
 
-### `variableName`
-returns content of the variable
-
-if variable is a closure, executes it and returns the result
-
-variable names shouldn't contain characters like dots or spaces, but ideally they should only contain letters, numbers, `_` and `-`
-
-### `variableName.arrayElement.objectProperty`
-access element of array or object property when array/object is in variable
-
-also supports closures at any depth
-
-### `v/json`
-decodes json after `/`, useful for literal values like: `v/true`, `v/false`, `v/0` or even strings, e.g. `v/"string"`
-
-### `f/variableName, param, ...`
-calls the callable in `variableName` and passed provided params (if any)
-
-params can be encapsulated into `|` characters if your expression contains `,`
-
-
-## Built-in functions
-
-| **function**                             | **php equivalent**                     | **notes**                              |
-|------------------------------------------|----------------------------------------|----------------------------------------|
-| `logic.ternary, a, b, c`                 | `$a ? $b : $c`                         |                                        |
-| `logic.shortTernary, a, b`               | `$a ?: $b`                             |                                        |
-| `logic.and, a, b`                        | `$a && $b`                             |                                        |
-| `logic.or, a, b`                         | `$a \|\| $b`                           |                                        |
-| `logic.not, a`                           | `!$a`                                  |                                        |
-| `compare.equal, a, b`                    | `$a == $b`                             |                                        |
-| `compare.different, a, b`                | `$a != $b`                             |                                        |
-| `compare.exact, a, b`                    | `$a === $b`                            |                                        |
-| `compare.notExact, a, b`                 | `$a !== $b`                            |                                        |
-| `compare.larger, a, b`                   | `$a > $b`                              |                                        |
-| `compare.largerEqual, a, b`              | `$a >= $b`                             |                                        |
-| `compare.smaller, a, b`                  | `$a < $b`                              |                                        |
-| `compare.smallerEqual, a, b`             | `$a <= $b`                             |                                        |
-| `array.count, var`                       | `count($var)`                          | var can be a countable array or object |
-| `array.reverse, var`                     | `array_reverse($var)`                  |                                        |
-| `text.length, string`                    | `strlen($string)`                      |                                        |
-| `text.concat, string1, string2, ...`     | `implode('', $strings)`                |                                        |
-| `text.implode, separator, array`         | `implode($separator, $array)`          |                                        |
-| `text.explode, separator, string, limit` | `explode($separator, $string, $limit)` | limit is optional                      |
-| `json.decode, string`                    | `json_decode($string, true)`           |                                        |
-| `json.encode, var`                       | `json_encode($var)`                    |                                        |
-
-
-## Class
-
-```php
-new Le\Dataplater\Dataplater(?string $filename, ?string $template, array $vars)
-```
-
-when creating an object, pass your template filename as the first constructor parameter. if you instead want to load template HTML from a string, skip the first argument by using named arguments (e.g. `template: $htmlString`). when you want to define global vars, pass them to the argument vars (e.g. `vars: $globalVariables`).
-
-```php
-$dataplater->render(array $vars);
-```
-
-this method renders the template using global vars together with vars optionally passed as parameter and returns the rendered HTML string. you can call it multiple times on the same dataplater object to render multiple different pages.
-
-## Disclaimer
-
-Use on your own responsibility, this may not be suitable for production - I honestly haven't benchmarked it.
+Any contributions to this project are welcome!
