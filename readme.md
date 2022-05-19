@@ -25,7 +25,7 @@ This is <var>awesome</var>
 ```
 
 
-I actually created an [invoice template](https://leongrdic.github.io/php-dataplater/examples/invoice.html) for Dataplater that's used in production.
+I actually created an [invoice template](https://leongrdic.github.io/php-dataplater/invoice.html) for Dataplater that's used in production.
 The template's source code is [here](examples/invoice.html).
 
 ## Install
