@@ -1,6 +1,6 @@
 # Dataplater
 
-PHP templating engine that uses HTML data-attributes and keeps templates valid and clean.
+Dataplater is a templating engine written in PHP that uses HTML data-attributes and keeps templates valid and clean.
 This makes Dataplater perfect for creating document templates like invoices, contracts, emails, etc. which can be previewed in the browser before rendering.
 
 ## Features
@@ -16,8 +16,20 @@ This makes Dataplater perfect for creating document templates like invoices, con
 - 🗑️ delete elements based on conditions
 
 
-## Install
+## Examples
+
+```html
+This is <var data-dp=php.strrev(`emosewa`)></var>
+<!-- line above becomes: -->
+This is <var>awesome</var>
 ```
+
+
+I actually created an [invoice template](https://leongrdic.github.io/php-dataplater/examples/invoice.html) for Dataplater that's used in production.
+The template's source code is [here](examples/invoice.html).
+
+## Install
+```shell
 composer require leongrdic/dataplater
 ```
 
@@ -26,22 +38,16 @@ composer require leongrdic/dataplater
 - PHP 8.1+
 - DOM & XML extensions
 
-## Example
-
-I actually created an invoice template for Dataplater that I use commercially and in production.
-
-You can view the template source [here](examples/invoice.html), but also try opening it in a browser!
-
 ## Usage
 
 ```php
 $dp = new Le\Dataplater\Dataplater(
-    filename: 'template.html', // path relative to baseDir or absolutePath
-    // OR
-    template: '<html>...</html>', // also doesn't have to be a full HTML document
-    vars: [
-        'var' => 'value',
-    ],
+    filename: 'template.html', // path relative to baseDir or an absolute path
+    // or
+    template: '<html>...</html>', // doesn't have to be a full HTML document
+    
+    // optional:
+    vars: [ 'var' => 'value', ],
     baseDir: 'app/templates/' // used for includes (defaults to '.')
 );
 ```
@@ -59,6 +65,7 @@ You can now reuse this `Le\Dataplater\Dataplater` object to render multiple docu
 ```php
 $html = $dp->render([
     'var' => 'local value',
+    'function' => fn () => 'some value',
 ]);
 ```
 
@@ -144,7 +151,11 @@ The expression otherwise must evaluate to a string. The string will be inserted 
 <span data-dp=message></span>
 
 <var data-dp="balance > 0 ? balance : 'empty balance'"></var>
+
+<label data-dp=`cool`></label>
 ```
+
+Note: HTML interprets the attribute from the last example as: <code>data-dp="\`cool\`"</code>, and SMPLang will interpret <code>\`cool\`</code> as a string literal. If you wrote `data-dp="cool"` instead, SMPLang would look for a variable called `cool` and return its value.
 
 ### `data-dp-attr`
 **Value**: `attribute name ; SMPL expression`
