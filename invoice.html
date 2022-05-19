@@ -1,0 +1,431 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Invoice</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
+
+    <style>
+        :root {
+            --document-margin: 50px;
+            --totals-width: 50%;
+            --background-primary: #C5C5C5;
+            --background-secondary: #B9B9B9;
+            --separator-color: #787878;
+            --logo-width: 22.5%
+        }
+    </style>
+
+    <style data-dp=settings.css></style>
+
+    <style>
+
+        html, body, div, span, applet, object, iframe,
+        h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+        a, abbr, acronym, address, big, cite, code,
+        del, dfn, em, img, ins, kbd, q, s, samp,
+        small, strike, strong, sub, sup, tt, var,
+        b, u, i, center,
+        dl, dt, dd, ol, ul, li,
+        fieldset, form, label, legend,
+        table, caption, tbody, tfoot, thead, tr, th, td,
+        article, aside, canvas, details, embed,
+        figure, figcaption, footer, header, hgroup,
+        menu, nav, output, ruby, section, summary,
+        time, mark, audio, video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font: inherit;
+            font-size: 100%;
+            vertical-align: baseline;
+        }
+        /* HTML5 display-role reset for older browsers */
+        article, aside, details, figcaption, figure,
+        footer, header, hgroup, menu, nav, section {
+            display: block;
+        }
+        body {
+            line-height: 1;
+        }
+        ol, ul {
+            list-style: none;
+        }
+        blockquote, q {
+            quotes: none;
+        }
+        blockquote:before, blockquote:after,
+        q:before, q:after {
+            content: none;
+        }
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+
+        /* CUSTOM FW */
+
+        @media print {
+            :root {
+                --document-margin: 80px;
+                --totals-width: 60%;
+                --background-primary: #FFFFFF;
+                --background-secondary: #FCFCFC;
+                --separator-color: #CCCCCC;
+            }
+        }
+
+        .container {
+            padding-left: var(--document-margin);
+            padding-right: var(--document-margin);
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .text-bold {
+            font-weight: 700;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .separator-before {
+            border-top: 2px dashed var(--separator-color);
+        }
+
+        .separator-after {
+            border-bottom: 2px dashed var(--separator-color);
+        }
+
+        /* CUSTOM */
+
+        body {
+            height: 297mm;
+            width: 210mm;
+            margin-left: auto;
+            margin-right: auto;
+
+            display: flex;
+            flex-direction: column;
+
+            background-color: var(--background-primary);
+
+            font-family: Montserrat, monospace;
+            font-size: 15px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            padding-top: var(--document-margin) !important;
+            padding-bottom: 30px !important;
+            background-color: var(--background-secondary);
+        }
+
+        header img {
+            width: var(--logo-width);
+        }
+
+        header #companyInfo {
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+        header #companyInfo span {
+            display: block;
+            line-height: 20px;
+        }
+
+        header #documentHeader {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        header #documentHeader span {
+            display: block;
+        }
+
+        header #documentHeader #documentTitle {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        #subHeader {
+            display: flex;
+        }
+
+
+        #subHeader span {
+            display: block;
+            line-height: 20px;
+        }
+
+        #subHeader #recipientInfo {
+            margin-left: auto;
+            text-align: right;
+        }
+
+
+        #documentContent th:first-child,
+        #documentContent td:first-child {
+            padding-left: var(--document-margin);
+        }
+
+        #documentContent th:last-child,
+        #documentContent td:last-child {
+            padding-right: var(--document-margin);
+            text-align: right;
+            padding-left: 10px;
+            width: 16%;
+        }
+
+        #documentContent th:nth-child(5),
+        #documentContent td:nth-child(5) {
+            text-align: right;
+            padding-left: 15px;
+        }
+
+        #documentContent th:nth-child(4),
+        #documentContent td:nth-child(4) {
+            padding-left: 20px;
+            text-align: right;
+        }
+
+        #documentContent th:nth-child(2),
+        #documentContent td:nth-child(2) {
+            text-align: right;
+            padding-right: 15px;
+        }
+
+        #documentContent tbody tr:nth-child(odd) {
+            background-color: var(--background-secondary);
+        }
+
+        #documentContent td, #documentContent th {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            vertical-align: middle;
+        }
+
+        #documentContent td:first-child {
+            padding-right: 25px;
+            line-height: 18px;
+            white-space: pre-line;
+        }
+
+
+        #afterLines {
+            display: flex;
+        }
+
+        #documentBarcode {
+            margin: 24px;
+            margin-left: var(--document-margin);
+            width: 35%;
+            height: 86px;
+        }
+
+        #documentTotals {
+            margin-left: auto;
+            width: var(--totals-width);
+        }
+
+        #documentTotals div {
+            display: flex;
+            align-items: center;
+            height: 28px;
+        }
+
+        table {
+            margin-bottom: 8px;
+        }
+
+        #documentTotals .highlight {
+            background-color: var(--background-secondary);
+            margin-top: 6px;
+            padding-top: 6px;
+            padding-bottom: 8px;
+        }
+
+        #documentTotals span {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+
+        #documentTotals span:first-child {
+            padding-left: var(--document-margin);
+        }
+
+        #documentTotals span:last-child {
+            margin-left: auto;
+            padding-right: var(--document-margin);
+            padding-left: var(--document-margin);
+            text-align: right;
+        }
+
+        #documentText {
+            margin-top: 20px;
+            white-space: pre-line;
+            line-height: 16px;
+            font-size: 14px;
+        }
+
+        #documentSignature {
+            text-align: right;
+            line-height: 20px;
+        }
+
+        #documentSignature span {
+            display: block;
+        }
+
+        footer {
+            margin-top: auto;
+            padding-bottom: var(--document-margin) !important;
+            text-align: center;
+            background-color: var(--background-secondary);
+        }
+
+        footer p {
+            margin-top: 10px;
+            white-space: pre-line;
+            font-size: 14px;
+            line-height: 16px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<header class="container separator-after">
+    <img data-dp-src=settings.logo src="https://upload.wikimedia.org/wikipedia/commons/9/93/No-logo.svg" alt="">
+
+    <div id="companyInfo">
+        <span id="companyName" class="text-bold" data-dp=invoice.merchant.name>Company Ltd</span>
+        <span data-dp=invoice.merchant.address.street>Street 123</span>
+        <span data-dp="invoice.merchant.address.cityName ~ ', ' ~ invoice.merchant.address.country">City, Country</span>
+        <span><var data-dp="lang.companyId">ID</var>: <var data-dp="invoice.merchant.id">1234567890</var></span>
+    </div>
+
+    <div id="documentHeader">
+        <span id="documentTitle" class="text-bold"><var data-dp=lang.invoice>Invoice</var> <var data-dp=invoice.id>12345</var></span>
+        <span><var data-dp=invoice.place>City</var>, <var data-dp=date(invoice.issued)>21.01.2021.</var></span>
+    </div>
+</header>
+
+<div id="subHeader" class="container">
+    <div id="documentInfo">
+        <span data-dp-if=invoice.period><var data-dp=lang.invoicePeriod>Period</var>: <var data-dp="date(invoice.periodStart) ~ ' - ' ~ date(invoice.periodEnd)">21.01.2021. - 21.01.2021.</var></span>
+        <span data-dp-if=!invoice.period><var data-dp=lang.invoiceDelivery>Delivery</var>: <var data-dp=date(invoice.delivery)>21.01.2021.</var></span>
+        <span><var data-dp=lang.invoiceDue>Due</var>: <var data-dp=date(invoice.due)>21.01.2021.</var></span>
+        <span><var data-dp=lang.paymentId>Payment id</var>: <var data-dp=invoice.paymentId>12345</var></span>
+    </div>
+    <div id="recipientInfo">
+        <span class="text-bold" data-dp=invoice.buyer.name>Buyer Company Ltd</span>
+        <span data-dp=invoice.buyer.address.street>Street 321</span>
+        <span data-dp="invoice.buyer.address.cityName ~ ', ' ~ invoice.buyer.address.country">City, Country</span>
+        <span data-dp-if=invoice.buyer.id>
+			<var data-dp=lang.companyId>ID</var>: <var data-dp=invoice.buyer.id>0987654321</var>
+		</span>
+    </div>
+</div>
+
+<table id="documentContent" class="separator-after">
+    <thead class="container text-left text-bold separator-after">
+    <tr>
+        <th data-dp="lang.lineDescription">Description</th>
+        <th data-dp="lang.lineQuantity">Quantity</th>
+        <th data-dp="lang.lineUnit">Unit</th>
+        <th data-dp="lang.linePrice">Price</th>
+        <th data-dp="lang.lineDiscount">Discount</th>
+        <th data-dp="lang.lineTotal">Total</th>
+    </tr>
+    </thead>
+    <tbody>
+    <template data-dp-foreach=invoice.lines data-dp-var=line>
+        <tr>
+            <td data-dp=line.description></td>
+            <td data-dp=line.quantity></td>
+            <td data-dp=unitLang(line.unit)></td>
+            <td data-dp=money(line.pricePerUnit)></td>
+            <td data-dp=percent(line.discountEffectiveRate)></td>
+            <td data-dp=money(line.amountAfterDiscount)></td>
+        </tr>
+    </template>
+    <tr data-dp-if=false>
+        <td>Lorem ipsum</td> <td>1</td> <td>day</td> <td>1,000.00</td> <td>10%</td> <td>500.00</td>
+    </tr>
+    </tbody>
+</table>
+
+<div id="afterLines">
+    <img data-dp-if="settings.barcodeIban" id="documentBarcode" data-dp-src=barcode src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Better_Sample_PDF417.svg/1280px-Better_Sample_PDF417.svg.png" alt="">
+
+    <div id="documentTotals">
+        <section data-dp-if="invoice.discountAmount > 0">
+            <div>
+                <span data-dp=lang.amountPreDiscount>Before discount</span>
+                <span data-dp=money(invoice.amountPreDiscount)>1,000.00</span>
+            </div>
+            <div>
+                <span data-dp="lang.amountDiscount">Discount amount</span>
+                <span data-dp=money(invoice.discountAmount)>3,000.00</span>
+            </div>
+        </section>
+        <section data-dp-if="invoice.taxAmount > 0">
+            <div class="text-bold">
+                <span data-dp=lang.amountAfterDiscount>Amount after discount</span>
+                <span data-dp=money(invoice.amountAfterDiscount)>30.00</span>
+            </div>
+            <template data-dp-foreach=invoice.taxTotals data-dp-var=tax>
+                <div>
+                    <span><var data-dp=lang.amountTax></var> <var data-dp=percent(tax.rate)></var></span>
+                    <span data-dp=money(tax.amount)></span>
+                </div>
+            </template>
+            <div data-dp-if=false>
+                <span><var>Tax</var> <var>50.25%</var></span> <span>11,000.00</span>
+            </div>
+        </section>
+        <div class="separator-before text-bold highlight">
+            <span><var data-dp=lang.amountTotal>Total</var> <var data-dp=invoice.currency>EUR</var></span>
+            <span data-dp=money(invoice.paymentTotal)>400.00</span>
+        </div>
+        <section data-dp-if="invoice.paymentPaid > 0">
+            <div>
+                <span data-dp=lang.amountPaid>Already paid</span>
+                <span data-dp=money(invoice.paymentPaid)>600.00</span>
+            </div>
+            <div>
+                <span data-dp=lang.amountRemaining>Remaining</span>
+                <span data-dp=money(invoice.paymentRemaining)>2,000.00</span>
+            </div>
+        </section>
+    </div>
+</div>
+
+<p id="documentText" class="container" data-dp-html=content>
+    Here goes the invoice text. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+</p>
+
+<div id="documentSignature" class="container">
+    <span data-dp=lang.invoiceSigner>Signed by:</span>
+    <span data-dp=invoice.signer>John Doe</span>
+</div>
+
+<footer class="container separator-before">
+    <p data-dp-html=footer>
+        Here goes the footer text. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    </p>
+</footer>
+
+</body>
+</html>
