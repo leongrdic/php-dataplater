@@ -71,7 +71,7 @@ $html = $dp->render([
 
 The `render()` method renders the template and returns the rendered HTML as a string.
 
-If any variables are passed, they will be used to render the template and override any global vars (passed in the object constructor).
+If any vars are passed, they will override any global vars (passed in the object constructor) with the same name.
 
 You can call this method multiple times on the same object with different vars to render multiple different documents.
 
@@ -104,11 +104,11 @@ If the expression evaluates to `true`, the element will be rendered, otherwise i
 **Value**: SMPL expression
 
 **Additional attributes**:
-- `data-dp-key`: variable name to use for the current element key (optional)
-- `data-dp-value`: variable name to use for the current element value 
+- `data-dp-key`: name of var in which will be the current element key (optional)
+- `data-dp-value`: name of var in which will be the current element value 
 
 The expression must evaluate to an array or an iterable object.
-Children of the element with the `data-dp-foreach` attribute will be copied for each iteration and the `data-dp-key` and `data-dp-value` variables will be set to the current element key and value to be used in those child elements.
+Children of the element with the `data-dp-foreach` attribute will be copied for each iteration and the `data-dp-key` and `data-dp-value` vars will be set to the current element key and value to be used in those child elements.
 
 The element containing the `data-dp-foreach` attribute will be removed after the loop.
 
@@ -155,7 +155,7 @@ The expression otherwise must evaluate to a string. The string will be inserted 
 <label data-dp=`cool`></label>
 ```
 
-Note: HTML interprets the attribute from the last example as: <code>data-dp="\`cool\`"</code>, and SMPLang will interpret <code>\`cool\`</code> as a string literal. If you wrote `data-dp="cool"` instead, SMPLang would look for a variable called `cool` and return its value.
+Note: HTML interprets the attribute from the last example as: <code>data-dp="\`cool\`"</code>, and SMPLang will interpret <code>\`cool\`</code> as a string literal. If you wrote `data-dp="cool"` instead, SMPLang would look for a var called `cool` and return its value.
 
 ### `data-dp-attr`
 **Value**: `attribute name ; SMPL expression`
@@ -178,7 +178,7 @@ Dataplater also provides a few shortcut for the following attributes: `id` `clas
 
 Dataplater uses the [SMPLang](https://github.com/leongrdic/php-smplang) expression language. Refer to the SMPLang readme for more information about the syntax and supported operators.
 
-Vars from Dataplater are accessible as variables in the SMPL expression.
+Vars from Dataplater are accessible as vars in the SMPL expression.
 
 Dataplater also provides a global object `php` which is basically a proxy to all php functions. Use it to access any PHP function from within your expressions:
 
@@ -190,7 +190,7 @@ php.array_reverse(links)
 php.implode('-', php.explode(' ', someText))
 ```
 
-Keep in mind you can still pass your own closure variables and use them in your templates.
+Keep in mind you can still pass your own closure/function vars and use them in your templates.
 
 When the expression returns a closure, Dataplater will attempt to call it (without any params) and use the result instead of the closure.
 
