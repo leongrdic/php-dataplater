@@ -1,5 +1,6 @@
 {
     "name": "leongrdic/dataplater",
+    "description": "Template engine that uses data-* attributes so your HTML templates look great before rendering",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/leongrdic/php-dataplater",
