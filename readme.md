@@ -1,5 +1,7 @@
 # Dataplater
 
+[![run-tests](https://github.com/leongrdic/php-dataplater/actions/workflows/run-tests.yml/badge.svg)](https://github.com/leongrdic/php-dataplater/actions/workflows/run-tests.yml)
+
 Dataplater is a templating engine written in PHP that uses HTML data-attributes and keeps templates valid and clean.
 This makes Dataplater perfect for creating document templates like invoices, contracts, emails, etc. which can be previewed in the browser before rendering.
 
