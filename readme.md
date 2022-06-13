@@ -1,9 +1,13 @@
 # Dataplater
 
+[![release](http://poser.pugx.org/leongrdic/dataplater/v)](https://packagist.org/packages/leongrdic/dataplater)
+[![php-version](http://poser.pugx.org/leongrdic/dataplater/require/php)](https://packagist.org/packages/leongrdic/dataplater)
+[![license](http://poser.pugx.org/leongrdic/dataplater/license)](https://packagist.org/packages/leongrdic/dataplater)
+
 [![run-tests](https://github.com/leongrdic/php-dataplater/actions/workflows/run-tests.yml/badge.svg)](https://github.com/leongrdic/php-dataplater/actions/workflows/run-tests.yml)
 
 Dataplater is a templating engine written in PHP that uses HTML data-attributes and keeps templates valid and clean.
-This makes Dataplater perfect for creating document templates like invoices, contracts, emails, etc. which can be previewed in the browser before rendering.
+This makes Dataplater perfect for creating document templates like invoices, contracts, emails, etc. which can be **previewed in the browser before rendering**.
 
 ## Features
 - 💻 make HTML templates that look great even before rendering
@@ -37,7 +41,7 @@ composer require leongrdic/dataplater
 
 ### Requirements
 
-- PHP 8.1+
+- PHP 8.0+
 - DOM & XML extensions
 
 ## Usage
