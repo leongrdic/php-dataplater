@@ -203,7 +203,7 @@ Keep in mind you can still pass your own closure/function vars and use them in y
 
 When the expression returns a closure, Dataplater will attempt to call it (without any params) and use the result instead of the closure.
 
-Dataplater wraps all SMPL exceptions in a `Le\Dataplater\ParseException` which gives you access to the line number and the causing HTML element.
+Dataplater wraps all SMPL exceptions in a `\Le\Dataplater\ParseException` which gives you access to the line number and the causing HTML element.
 
 ## Rendering order
 

@@ -11,7 +11,7 @@ use Le\SMPLang\SMPLang;
 
 class Dataplater
 {
-    public const AXIS = 'descendant-or-self::*';
+    protected const AXIS = 'descendant-or-self::*';
 
     protected DOMDocument $doc;
     protected DOMXPath $xpath;
