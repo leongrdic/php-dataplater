@@ -2,6 +2,10 @@
 
 All notable changes to `php-dataplater` will be documented in this file.
 
+## 3.1.0 - 2022-06-23
+
+you can now pass an `attr` parameter when creating a Dataplater object in order to change the default `data-dp` attribute to a custom one.
+
 ## 3.0.0 - 2022-06-13
 
 major breaking update!
