@@ -24,8 +24,8 @@ class Dataplater
         ?string          $filename = null,
         ?string          $template = null,
         protected array  $vars = [],
-        protected string $attr = 'data-dp',
         protected string $baseDir = '.',
+        protected string $attr = 'data-dp',
     ) {
         if ($filename === null && $template === null) {
             throw new InvalidArgumentException('must provide either the filename or the template string param');

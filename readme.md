@@ -54,8 +54,8 @@ $dp = new \Le\Dataplater\Dataplater(
     
     // optional:
     vars: [ 'var' => 'value', ], // global vars
-    attr: 'data-custom', // custom base attribute
-    baseDir: 'app/templates/' // base directory for templates
+    baseDir: 'app/templates/', // base directory for templates
+    attr: 'data-custom' // custom base attribute
 );
 ```
 
@@ -64,8 +64,8 @@ The recommended way to initialize the object is by using PHP8's named arguments.
 
 Optional parameters:
 - `vars`: an array of global vars to pass into the template with keys being the vars' names
-- `attr`: the base attribute name to use for all attributes (defaults to `data-dp`)
 - `baseDir`: the base directory to use for includes (defaults to `.`)
+- `attr`: the base attribute name to use for all attributes (defaults to `data-dp`)
 
 ### `render()` method
 
