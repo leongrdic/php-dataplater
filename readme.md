@@ -47,26 +47,27 @@ composer require leongrdic/dataplater
 ## Usage
 
 ```php
-$dp = new Le\Dataplater\Dataplater(
+$dp = new \Le\Dataplater\Dataplater(
     filename: 'template.html', // path relative to baseDir or an absolute path
-    // or
+    // OR
     template: '<html>...</html>', // doesn't have to be a full HTML document
     
     // optional:
-    vars: [ 'var' => 'value', ],
-    baseDir: 'app/templates/' // used for includes (defaults to '.')
+    vars: [ 'var' => 'value', ], // global vars
+    attr: 'data-custom', // custom base attribute
+    baseDir: 'app/templates/' // base directory for templates
 );
 ```
 
-When creating an object, pass your template filename as the first constructor parameter.
+When creating a Dataplater object, you can either provide a **path to your template file** or pass the **template as a string**.
+The recommended way to initialize the object is by using PHP8's named arguments.
 
-If you instead want to load template HTML from a string, skip the first param using named arguments and provide only the `template` param.
+Optional parameters:
+- `vars`: an array of global vars to pass into the template with keys being the vars' names
+- `attr`: the base attribute name to use for all attributes (defaults to `data-dp`)
+- `baseDir`: the base directory to use for includes (defaults to `.`)
 
-To define global vars that will be accessible in all renders, pass them to the `vars` param.
-
-If you want to use a different base directory for includes, pass it to the `baseDir` param.
-
-You can now reuse this `Le\Dataplater\Dataplater` object to render multiple documents using different vars.
+### `render()` method
 
 ```php
 $html = $dp->render([
@@ -77,19 +78,21 @@ $html = $dp->render([
 
 The `render()` method renders the template and returns the rendered HTML as a string.
 
-If any vars are passed, they will override any global vars (passed in the object constructor) with the same name.
+The optional parameter is an array of local vars that will override any global vars with the same name.
 
-You can call this method multiple times on the same object with different vars to render multiple different documents.
+You can call this method multiple times on the same object with different vars to render multiple variants of the same document.
 
 
 ## Attribute reference
 
-All following `data-dp` attributes are removed from the template after rendering.
+If you change the base attribute to e.g. `data-custom` (when creating the Dataplater object), use `data-custom-foreach` instead of `data-dp-foreach`.
+
+All Dataplater attributes will be automatically removed from the template after rendering.
 
 ### `data-dp-include`
 **Value**: filename of the HTML template to include.
 
-Content of the included file will be inserted into the template replacing the element with the `data-dp-include` attribute.
+Content of the included file will be inserted into the document replacing the element with the `data-dp-include` attribute.
 
 ```html
 <template data-dp-include="include.html"></template>
@@ -111,7 +114,7 @@ If the expression evaluates to `true`, the element will be rendered, otherwise i
 
 **Additional attributes**:
 - `data-dp-key`: name of var in which will be the current element key (optional)
-- `data-dp-value`: name of var in which will be the current element value 
+- `data-dp-value`: name of var in which will be the current element value (required)
 
 The expression must evaluate to an array or an iterable object.
 Children of the element with the `data-dp-foreach` attribute will be copied for each iteration and the `data-dp-key` and `data-dp-value` vars will be set to the current element key and value to be used in those child elements.
