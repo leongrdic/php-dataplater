@@ -2,10 +2,11 @@
 
 namespace Le\Dataplater;
 
-use Exception;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
+use InvalidArgumentException;
+use Le\SMPLang\Exception;
 use Le\SMPLang\SMPLang;
 
 class Dataplater
@@ -15,20 +16,21 @@ class Dataplater
     protected bool $removeWrapper = true;
 
     /**
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function __construct(
         ?string $filename = null,
         ?string $template = null,
         protected array $vars = [],
+        protected string $attribute = 'data-dp',
         protected string $baseDir = '.',
     ) {
         if ($filename === null && $template === null) {
-            throw new Exception('must provide either the filename or the template string param');
+            throw new InvalidArgumentException('must provide either the filename or the template string param');
         }
 
         if ($filename !== null && $template !== null) {
-            throw new Exception('you can either pass the filename or template string params, not both');
+            throw new InvalidArgumentException('you can either pass the filename or template string params, not both');
         }
 
         if ($filename !== null) {
@@ -37,7 +39,7 @@ class Dataplater
                 $filename = "$this->baseDir/$filename";
             }
             if (!file_exists($filename)) {
-                throw new Exception("template file `$filename` not found");
+                throw new InvalidArgumentException("template file `$filename` not found");
             }
             $template = file_get_contents($filename);
         }
@@ -95,7 +97,7 @@ class Dataplater
         $axis = 'descendant-or-self::*';
 
         // INCLUDE
-        $attr = "data-dp-include";
+        $attr = "$this->attribute-include";
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
             $includeFile = $elem->getAttribute($attr);
             $includeFile = "$this->baseDir/$includeFile";
@@ -112,12 +114,12 @@ class Dataplater
         }
 
         // IF
-        $attr = "data-dp-if";
+        $attr = "$this->attribute-if";
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
             // is this element inside foreach, if so skip it because not all variables are set yet
             $parent = $elem;
             while ($parent = $parent->parentNode) {
-                if (!$parent instanceof DOMDocument && $parent->hasAttribute('data-dp-foreach')) {
+                if (!$parent instanceof DOMDocument && $parent->hasAttribute("$this->attribute-foreach")) {
                     continue 2;
                 }
             }
@@ -131,9 +133,9 @@ class Dataplater
         }
 
         // FOREACH
-        $attr = "data-dp-foreach";
-        $attrKey = "data-dp-key";
-        $attrVar = "data-dp-var";
+        $attr = "$this->attribute-foreach";
+        $attrKey = "$this->attribute-key";
+        $attrVar = "$this->attribute-var";
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
             $iterable = $this->eval($elem->getAttribute($attr), $elem);
             if (!is_iterable($iterable)) {
@@ -164,7 +166,7 @@ class Dataplater
         }
 
         // HTML
-        $attr = "data-dp-html";
+        $attr = "$this->attribute-html";
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
             $result = $this->eval($elem->getAttribute($attr), $elem);
             $elem->removeAttribute($attr);
@@ -178,7 +180,7 @@ class Dataplater
         }
 
         // TEXT
-        $attr = "data-dp";
+        $attr = $this->attribute;
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
             $result = $this->eval($elem->getAttribute($attr), $elem);
             $elem->removeAttribute($attr);
@@ -190,7 +192,7 @@ class Dataplater
         }
 
         // CUSTOM ATTRIBUTE
-        $attr = "data-dp-attr";
+        $attr = "$this->attribute-attr";
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
             [$targetAttr, $expression] = explode(';', $elem->getAttribute($attr), 2);
             $elem->removeAttribute($attr);
@@ -207,7 +209,7 @@ class Dataplater
         // ATTRIBUTE SHORTCUTS
         $shortcutAttrs = ['id', 'class', 'title', 'alt', 'value', 'href', 'src', 'style'];
         foreach ($shortcutAttrs as $targetAttr) {
-            $attr = "data-dp-$targetAttr";
+            $attr = "$this->attribute-$targetAttr";
             foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
                 $result = $this->eval($elem->getAttribute($attr), $elem);
                 $elem->removeAttribute($attr);
@@ -229,7 +231,7 @@ class Dataplater
             unset($smpl);
 
             return is_callable($result) ? $result() : $result;
-        } catch (\Le\SMPLang\Exception $e) {
+        } catch (Exception $e) {
             throw new ParseException($e->getMessage(), $node, $e);
         }
     }
