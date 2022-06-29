@@ -176,6 +176,10 @@ class Dataplater
                 continue;
             }
 
+            if (!$this->isString($result)) {
+                throw new ParseException("`$attr` expression result not a string", $elem);
+            }
+
             $elem->nodeValue = '';
             $doc = $this->domDocumentFromHtml("<?xml encoding=\"utf-8\" ?><dataplater>$result</dataplater>");
             $this->importTagChildren($doc, 'dataplater', fn ($child) => $elem->appendChild($child));
@@ -190,13 +194,22 @@ class Dataplater
             if ($result === null) {
                 continue;
             }
+
+            if (!$this->isString($result)) {
+                throw new ParseException("`$attr` expression result not a string", $elem);
+            }
+
             $elem->nodeValue = $result;
         }
 
         // CUSTOM ATTRIBUTE
         $attr = "$this->attr-attr";
         foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
-            [$targetAttr, $expression] = explode(';', $elem->getAttribute($attr), 2);
+            $value = explode(';', $elem->getAttribute($attr), 2);
+            if (!isset($value[1])) {
+                throw new ParseException("missing expression in attribute `$attr`", $elem);
+            }
+            [$targetAttr, $expression] = $value;
             $elem->removeAttribute($attr);
 
             $targetAttr = trim($targetAttr);
@@ -205,6 +218,11 @@ class Dataplater
             if ($result === null) {
                 continue;
             }
+
+            if (!$this->isString($result)) {
+                throw new ParseException("`$attr` expression result not a string", $elem);
+            }
+
             $elem->setAttribute($targetAttr, $result);
         }
 
@@ -215,6 +233,11 @@ class Dataplater
             foreach ($this->xpath->query("{$axis}[@$attr]", $context) as $elem) {
                 $result = $this->eval($elem->getAttribute($attr), $elem);
                 $elem->removeAttribute($attr);
+
+                if (!$this->isString($result)) {
+                    throw new ParseException("`$attr` expression result not a string", $elem);
+                }
+
                 if ($result !== null) {
                     $elem->setAttribute($targetAttr, $result);
                 }
@@ -225,7 +248,7 @@ class Dataplater
     /**
      * @throws ParseException
      */
-    private function eval(string $expression, DOMElement $node)
+    private function eval(string $expression, DOMElement $node): mixed
     {
         try {
             $smpl = new SMPLang($this->vars);
@@ -253,5 +276,10 @@ class Dataplater
         foreach ($doc->getElementsByTagName($tag)->item(0)->childNodes as $child) {
             $forEach($this->doc->importNode($child, true));
         }
+    }
+
+    private function isString(mixed $value): bool
+    {
+        return is_string($value) || (is_object($value) && method_exists($value, '__toString'));
     }
 }
