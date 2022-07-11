@@ -2,6 +2,10 @@
 
 All notable changes to `php-dataplater` will be documented in this file.
 
+## 3.1.2 - 2022-07-11
+
+Fix: besides string, expressions can now also return numbers and bools without having an exception thrown.
+
 ## 3.1.1 - 2022-06-29
 
 an exception will now be thrown:
