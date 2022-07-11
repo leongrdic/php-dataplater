@@ -280,6 +280,6 @@ class Dataplater
 
     private function isString(mixed $value): bool
     {
-        return is_string($value) || (is_object($value) && method_exists($value, '__toString'));
+        return is_scalar($value) || (is_object($value) && method_exists($value, '__toString'));
     }
 }
