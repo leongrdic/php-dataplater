@@ -89,12 +89,21 @@ test('html and concat', function () {
     assertEquals(stripHtml($expect), stripHtml($dp->render()));
 });
 
-test('closure and concat', function () {
+test('closure', function () {
     $dp = new Dataplater(
         template: '<i data-dp=wrap("nice")></i>',
         vars: ['wrap' => fn ($a) => "before: $a :after"]
     );
     $expect = '<i>before: nice :after</i>';
+
+    assertEquals(stripHtml($expect), stripHtml($dp->render()));
+});
+
+test('php function', function () {
+    $dp = new Dataplater(
+        template: '<p data-dp=php.strrev("reverse")></p>'
+    );
+    $expect = '<p>esrever</p>';
 
     assertEquals(stripHtml($expect), stripHtml($dp->render()));
 });
