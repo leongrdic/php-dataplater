@@ -3,8 +3,9 @@
 [![release](http://poser.pugx.org/leongrdic/dataplater/v)](https://packagist.org/packages/leongrdic/dataplater)
 [![php-version](http://poser.pugx.org/leongrdic/dataplater/require/php)](https://packagist.org/packages/leongrdic/dataplater)
 [![license](http://poser.pugx.org/leongrdic/dataplater/license)](https://packagist.org/packages/leongrdic/dataplater)
-
 [![run-tests](https://github.com/leongrdic/php-dataplater/actions/workflows/run-tests.yml/badge.svg)](https://github.com/leongrdic/php-dataplater/actions/workflows/run-tests.yml)
+
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/dataplater?input=%24dp%20%3D%20new%20%5CLe%5CDataplater%5CDataplater%28%0A%20%20%20%20template%3A%20%22This%20is%20%3Cvar%20data-dp%3Dphp.strrev%28%60emosewa%60%29%3E%3C%2Fvar%3E%22%0A%29%3B%0A%0A%24result%20%3D%20%24dp-%3Erender%28%29%3B%0Aprint_r%28%24result%29%3B)
 
 Dataplater is a templating engine written in PHP that uses HTML data-attributes and keeps templates valid and clean.
 This makes Dataplater perfect for creating document templates like invoices, contracts, emails, etc. which can be **previewed in the browser before rendering**.
@@ -108,6 +109,7 @@ If the expression evaluates to `true`, the element will be rendered, otherwise i
 
 <div data-dp-if="id > 1">this will be rendered if the condition is met</div>
 ```
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/dataplater?input=%24html%20%3D%20%3C%3C%3CHTML%0A%3Cdiv%20data-dp-if%3Dfalse%3Ethis%20element%20will%20always%20be%20removed%3C%2Fdiv%3E%0A%0A%3Cdiv%20data-dp-if%3D%22id%20%3E%201%22%3Ethis%20will%20be%20rendered%20if%20the%20condition%20is%20met%3C%2Fdiv%3E%0AHTML%3B%0A%0A%24dp%20%3D%20new%20%5CLe%5CDataplater%5CDataplater%28template%3A%20%24html%29%3B%0A%0A%24result%20%3D%20%24dp-%3Erender%28%5B%27id%27%20%3D%3E%202%5D%29%3B%0A%0Aprint_r%28%24result%29%3B)
 
 ### `data-dp-foreach`
 **Value**: SMPL expression
@@ -132,6 +134,7 @@ The element containing the `data-dp-foreach` attribute will be removed after the
     <a data-dp-href=user.url data-dp=user.name></a>
 </template>
 ```
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/dataplater?input=%24html%20%3D%20%3C%3C%3CHTML%0A%3Cul%3E%0A%20%20%20%20%3Ctemplate%20data-dp-foreach%3D%5B%27google%27%2C%27youtube%27%5D%20data-dp-var%3Dname%20data-dp-key%3Did%3E%0A%20%20%20%20%20%20%20%20%3Cli%20data-dp%3D%22id%2B1%20~%20%27.%20%27%20~%20name%22%3E%3C%2Fli%3E%0A%20%20%20%20%3C%2Ftemplate%3E%0A%3C%2Ful%3E%0A%0A%3Ctemplate%20data-dp-foreach%3Dusers%20data-dp-var%3Duser%3E%0A%20%20%20%20%3Ca%20data-dp-href%3Duser.url%20data-dp%3Duser.name%3E%3C%2Fa%3E%0A%3C%2Ftemplate%3E%0AHTML%3B%0A%0A%24dp%20%3D%20new%20%5CLe%5CDataplater%5CDataplater%28template%3A%20%24html%29%3B%0A%0A%24result%20%3D%20%24dp-%3Erender%28%5B%27users%27%20%3D%3E%20%5B%0A%20%20%5B%27url%27%20%3D%3E%20%27%231%27%2C%20%27name%27%20%3D%3E%20%27foo%27%5D%2C%0A%20%20%5B%27url%27%20%3D%3E%20%27%232%27%2C%20%27name%27%20%3D%3E%20%27bar%27%5D%2C%0A%5D%5D%29%3B%0A%0Aprint_r%28%24result%29%3B)
 
 ### `data-dp-html`
 **Value**: SMPL expression
@@ -149,6 +152,8 @@ The inserted HTML will have only `data-dp`, `data-dp-attr` and attribute shortcu
 ```
 Note the quotes around the expression in the second example - the outer quotes are defining content of the HTML attribute and the inner quotes are defining a string within the SMPL expression.
 
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/dataplater?input=%24html%20%3D%20%3C%3C%3CHTML%0A%3Cdiv%20data-dp-html%3D%22%27%3Cb%3E%27%20~%20name%20~%20%27%3C%2Fb%3E%27%22%3E%3C%2Fdiv%3E%0A%0A%3Cdiv%20data-dp-html%3D%22%27%3Cb%20data-dp%3Dname%3E%3C%2Fb%3E%27%22%3E%3C%2Fdiv%3E%0AHTML%3B%0A%0A%24dp%20%3D%20new%20%5CLe%5CDataplater%5CDataplater%28template%3A%20%24html%29%3B%0A%0A%24result%20%3D%20%24dp-%3Erender%28%5B%27name%27%20%3D%3E%20%27Foobar%27%5D%29%3B%0A%0Aprint_r%28%24result%29%3B)
+
 ### `data-dp`
 **Value**: SMPL expression
 
@@ -163,8 +168,9 @@ The expression otherwise must evaluate to a string. The string will be inserted 
 
 <label data-dp=`cool`></label>
 ```
-
 Note: HTML interprets the attribute from the last example as: <code>data-dp="\`cool\`"</code>, and SMPLang will interpret <code>\`cool\`</code> as a string literal. If you wrote `data-dp="cool"` instead, SMPLang would look for a var called `cool` and return its value.
+
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/dataplater?input=%24html%20%3D%20%3C%3C%3CHTML%0A%3Cspan%20data-dp%3Dmessage%3E%3C%2Fspan%3E%0A%0A%3Cvar%20data-dp%3D%22balance%20%3E%200%20%3F%20balance%20%3A%20%27empty%20balance%27%22%3E%3C%2Fvar%3E%0A%0A%3Clabel%20data-dp%3D%60cool%60%3E%3C%2Flabel%3E%0AHTML%3B%0A%0A%24dp%20%3D%20new%20%5CLe%5CDataplater%5CDataplater%28template%3A%20%24html%29%3B%0A%0A%24result%20%3D%20%24dp-%3Erender%28%5B%0A%20%20%20%20%27message%27%20%3D%3E%20%27This%20is%20a%20demo%20message.%27%2C%0A%20%20%20%20%27balance%27%20%3D%3E%200%2C%0A%5D%29%3B%0A%0Aprint_r%28%24result%29%3B)
 
 ### `data-dp-attr`
 **Value**: `attribute name ; SMPL expression`
@@ -182,6 +188,7 @@ Dataplater also provides a few shortcut for the following attributes: `id` `clas
 
 <div data-dp-class="!hidden ? 'show'"></div>
 ```
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/dataplater?input=%24html%20%3D%20%3C%3C%3CHTML%0A%3Cspan%20data-dp-attr%3D%22title%20%3B%20message%22%3E%3C%2Fspan%3E%0A%3C%21--%20or%20--%3E%0A%3Cvar%20data-dp-title%3Dmessage%3E%3C%2Fvar%3E%0A%0A%3Cdiv%20data-dp-class%3D%22%21hidden%20%3F%20%27show%27%22%3E%3C%2Fdiv%3E%0AHTML%3B%0A%0A%24dp%20%3D%20new%20%5CLe%5CDataplater%5CDataplater%28template%3A%20%24html%29%3B%0A%0A%24result%20%3D%20%24dp-%3Erender%28%5B%0A%20%20%20%20%27message%27%20%3D%3E%20%27This%20is%20a%20demo%20message.%27%2C%0A%20%20%20%20%27hidden%27%20%3D%3E%20false%2C%0A%5D%29%3B%0A%0Aprint_r%28%24result%29%3B)
 
 ## Expression reference
 
